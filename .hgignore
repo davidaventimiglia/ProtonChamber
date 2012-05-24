@@ -1,5 +1,8 @@
 syntax: glob
 
+salt
+*.tmp
+configure
 salt.jar
 Test/*
 classes/*
