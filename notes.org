@@ -1,0 +1,41 @@
+* To do list for Atomic
+*** DONE Make Makefile.am suppress warnings AND work with javac and gcj
+*** DONE Make Makefile.am move static resources from src into classes
+*** DONE Create a BitBucket repository for all this stuff and start using version control.
+*** DONE Possible to compile all resources including dependencies into one Jar file?
+*** DONE Use CSS to dress up the final HTML a bit.
+*** DONE Strip out lightweight object model in favor of simple data structures.
+*** DONE Get access to the log4J facilities.
+*** DONE Add installable scripts to run the programs (bash).
+*** DONE Fix .dir-locals.el so that it doesn't hard code the directory.
+*** DONE Create a setenv script
+*** DONE Figure out where to install jar files, if possible
+*** DONE Static resources should be served from a configurable location, not the CWD.
+*** TODO Figure out how to insert an XSL stylesheet link into service and feed documents
+*** TODO Do I need separate XSL stylesheets for service and feed docs, or can I just have one?
+*** TODO Figure out ODATA encoding for feed property data.
+*** TODO Set up configuration for Atomic and Cosmotron.
+    - Each looks for a properties file (e.g. atomic.properties, cosmotron.properties)
+    - Loads properties file if it's there.
+    - Uses hard-coded defaults if not there.
+    - Also can override properties using java's -D switches.
+    - But, provide a command-line parameter so you can specify the properties file.
+*** TODO Figure out how to use InputStreams/OutputStreams with HttpClient.
+*** TODO Start writing Texinfo docs.
+*** TODO Remove derby jar files, if I can figure out where they are in the standard JDK.
+*** TODO Maybe suppress Jetty log4J INFO output, if possible.
+*** TODO Install proper error handling (everywhere).
+*** TODO Switch to PreparedStatements in AtomicServlet.
+*** TODO Do due diligence on other ways to avoid SQL injection.
+*** TODO Stop throwing ServletException, and return appropriate HTTP status codes instead.
+*** TODO Rationalize servlet operations
+***** What must AtomicServet do?
+******* Parse the request URL
+******* Check the accept request headers
+******* If URL is syntactically incorrect, return 400
+******* If URL points to valid service doc, return 200 plus service doc
+******* If URL points to valid collection, return 200 plus feed
+******* If URL points to an invalid service doc or collection, return 404
+******* Else, throw ServletException and/or return 500
+*** TODO Map actual table names to user-visible names.
+

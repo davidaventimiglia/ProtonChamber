@@ -1,0 +1,13 @@
+# -*- mode: makefile-gmake; -*-
+
+JARFILE = atomic.jar
+SRCDIR = src
+LIBDIR = lib
+CLASSESDIR = java
+BINFILES = atomic cosmotron $(JARFILE)
+JAVAC_FLAGS = -g -Wno-all
+GCJ_FLAGS = -g -nowarn
+
+# Supplemental dist cleaning rule
+distclean-local:
+	rm -rf Test
