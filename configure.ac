@@ -2,9 +2,9 @@ dnl                                               -*- Autoconf -*-
 dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.65])
-AC_INIT([Atomic], [0.9], [dventimi@gmail.com])
+AC_INIT([RadiumSalt], [0.9], [dventimi@gmail.com])
 AM_INIT_AUTOMAKE
-AC_CONFIG_SRCDIR([src/Atomic.java])
+AC_CONFIG_SRCDIR([src/RadiumSalt.java])
 AC_CANONICAL_HOST
 AS_CASE([$host_os], [cygwin], [CYGPATH_PW="cygpath -pw"], [CYGPATH_PW="echo"])
 AC_SUBST([CYGPATH_PW])
