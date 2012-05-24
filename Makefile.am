@@ -16,13 +16,13 @@ JAVAC_FLAGS = -g -w
 # Automake `primary' says to compile *.java files and put results in `classesdir'
 javadir = $(top_builddir)/$(CLASSESDIR)
 JAVAROOT = $(javadir)
-dist_java_JAVA = $(shell find $(SRCDIR) -name '*.java')
+dist_java_JAVA = $(shell find $(SRCDIR) -name '*.java') src/TParser.java src/TLexer.java
 
 # Debug flags, no warnings, for javac and gcj
 AM_JAVACFLAGS = $(JAVAC_FLAGS)
 
 # Automake variable with supplemental items to clean
-CLEANFILES = *.class $(JARFILE) salt
+CLEANFILES = *.class $(JARFILE) salt src/TParser.java src/TLexer.java src/T.tokens
 
 # Automake variables needed by java and javac
 JARS = $(shell find $(LIBDIR) -name '*.jar' -printf '%p:')
@@ -34,6 +34,15 @@ dist_bin_SCRIPTS = $(BINFILES)
 
 # We need this for substitution in sed commands
 saltdir := $(pkgdatadir)
+
+src/TParser.java: T.g
+	@JAVA@ -cp $(CLASSPATH) org.antlr.Tool -o src $<
+
+src/TLexer.java: T.g
+	@JAVA@ -cp $(CLASSPATH) org.antlr.Tool -o src $<
+
+src/T.tokens: T.g
+	@JAVA@ -cp $(CLASSPATH) org.antlr.Tool -o src $<
 
 # Build the main jar file.
 $(JARFILE): classdist_java.stamp $(dist_data_DATA)

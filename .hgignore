@@ -1,5 +1,8 @@
 syntax: glob
 
+*.tokens
+*Lexer.java
+*Parser.java
 salt
 *.tmp
 configure
