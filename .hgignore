@@ -28,3 +28,5 @@ autom4te.cache/*
 classdist_java.stamp
 java/*.class
 *.class
+*.stamp
+iongun.jar

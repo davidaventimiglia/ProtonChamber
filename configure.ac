@@ -1,10 +1,7 @@
-dnl                                               -*- Autoconf -*-
-dnl Process this file with autoconf to produce a configure script.
-
-AC_PREREQ([2.65])
-AC_INIT([RadiumSalt], [0.9], [dventimi@gmail.com])
+AC_PREREQ([2.62])
+AC_INIT([IonGun], [0.9], [http://www.iongun.org])
 AM_INIT_AUTOMAKE
-AC_CONFIG_SRCDIR([src/RadiumSalt.java])
+AC_CONFIG_SRCDIR([src/org/iongun/util/Translator.java])
 AC_CANONICAL_HOST
 AS_CASE([$host_os], [cygwin], [CYGPATH_PW="cygpath -pw"], [CYGPATH_PW="echo"])
 AC_SUBST([CYGPATH_PW])
