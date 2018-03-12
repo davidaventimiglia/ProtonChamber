@@ -1,5 +1,0 @@
-#!/bin/sh
-# Simple script for invoking RadiumSalt
-DIR="$( cd "$( dirname "$0" )" && pwd )"
-export RADIUMSALTDATA=PKGDATADIR
-java -cp ${DIR}/salt.jar RadiumSalt
