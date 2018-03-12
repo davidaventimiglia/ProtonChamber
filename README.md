@@ -17,6 +17,10 @@ This README would normally document whatever steps are necessary to get your app
 * How to run tests
 * Deployment instructions
 
+* Get [ODATA ABNF](http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/abnf/odata-abnf-construction-rules.txt)
+
+    wget http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/abnf/odata-abnf-construction-rules.txt
+
 ### Contribution guidelines ###
 
 * Writing tests
