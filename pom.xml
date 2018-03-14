@@ -17,6 +17,79 @@
   <build>
     <plugins>
       <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-install-plugin</artifactId>
+	<version>2.5.2</version>
+	<executions>
+	  <execution>
+	    <phase>initialize</phase>
+	    <goals>
+	      <goal>install-file</goal>
+	    </goals>
+	    <configuration>
+	      <groupId>org.protonchamber</groupId>
+	      <artifactId>apg.jar</artifactId>
+	      <version>1.0</version>
+	      <packaging>jar</packaging>
+	      <file>${basedir}/lib/apg.jar</file>
+	    </configuration>
+	  </execution>
+	</executions>
+      </plugin>
+      <plugin>
+	<artifactId>maven-antrun-plugin</artifactId>
+	<executions>
+	  <execution>
+	    <id>generate-sources</id>
+	    <phase>generate-sources</phase>
+	    <configuration>
+              <tasks>
+		<mkdir dir="target/generated-sources/java/"/>
+              </tasks>
+	    </configuration>
+	    <goals>
+              <goal>run</goal>
+	    </goals>
+	  </execution>
+	</executions>
+      </plugin>
+      <plugin>
+	<groupId>org.codehaus.mojo</groupId>
+	<artifactId>exec-maven-plugin</artifactId>
+	<version>1.6.0</version>
+	<executions>
+	  <execution>
+	    <phase>generate-sources</phase>
+	    <goals>
+	      <goal>java</goal>
+	    </goals>
+	    <configuration>
+	      <mainClass>apg.Generator</mainClass>
+	      <commandlineArgs>/javadoc=Test /in=${basedir}/src/main/resources/odata-abnf-construction-rules.txt /log=test.log /package=org.protonchamber /dir=${project.build.directory}/generated-sources/java/</commandlineArgs>
+	    </configuration>
+	  </execution>
+	</executions>
+      </plugin>
+      <plugin>
+	<groupId>org.codehaus.mojo</groupId>
+	<artifactId>build-helper-maven-plugin</artifactId>
+	<version>3.0.0</version>
+	<executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/java/</source>
+              </sources>
+            </configuration>
+          </execution>
+	</executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
         <configuration>
@@ -40,17 +113,22 @@
     </plugins>
   </build>
 
-  <reporting>
-    <plugins>
-      <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-javadoc-plugin</artifactId>
-	<version>3.0.0</version>
-      </plugin>
-    </plugins>
-  </reporting>
+  <!-- <reporting> -->
+  <!--   <plugins> -->
+  <!--     <plugin> -->
+  <!-- 	<groupId>org.apache.maven.plugins</groupId> -->
+  <!-- 	<artifactId>maven-javadoc-plugin</artifactId> -->
+  <!-- 	<version>3.0.0</version> -->
+  <!--     </plugin> -->
+  <!--   </plugins> -->
+  <!-- </reporting> -->
 
   <dependencies>
+    <dependency>
+      <groupId>org.protonchamber</groupId>
+      <artifactId>apg</artifactId>
+      <version>1.0</version>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

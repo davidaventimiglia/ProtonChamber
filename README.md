@@ -21,6 +21,10 @@ This README would normally document whatever steps are necessary to get your app
 
     wget http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/abnf/odata-abnf-construction-rules.txt
 
+* Install APJ
+
+    mvn install:install-file -Dfile=lib/apg.jar -DgroupId=org.protonchamber -DartifactId=apg -Dversion=1.0 -Dpackaging=jar
+
 ### Contribution guidelines ###
 
 * Writing tests
