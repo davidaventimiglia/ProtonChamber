@@ -1,0 +1,16 @@
+http://localhost:8080/serviceRoot/People
+http://localhost:8080/serviceRoot/People('russellwhyte')
+http://localhost:8080/serviceRoot/Airports('KSFO')/Name
+http://localhost:8080/serviceRoot/People?$filter=FirstName eq 'Scott'
+http://localhost:8080/serviceRoot/Airports?$filter=contains(Location/Address, 'San Francisco')
+http://localhost:8080/serviceRoot/People?$filter=Gender eq Microsoft.OData.SampleService.Models.TripPin.PersonGender'Female'
+http://localhost:8080/serviceRoot/People?$expand=Trips($filter=Name eq 'Trip in US')
+http://localhost:8080/serviceRoot/People('scottketchum')/Trips?$orderby=EndsAt desc
+http://localhost:8080/serviceRoot/People?$top=2
+http://localhost:8080/serviceRoot/People?$skip=18
+http://localhost:8080/serviceRoot/People/$count
+http://localhost:8080/serviceRoot/People('keithpinckney')?$expand=Friends
+http://localhost:8080/serviceRoot/Airports?$select=Name, IcaoCode
+http://localhost:8080/serviceRoot/People?$search=Boise
+http://localhost:8080/serviceRoot/People?$filter=Emails/any(s:endswith(s, 'contoso.com'))
+

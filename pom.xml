@@ -16,47 +16,47 @@
 
   <build>
     <plugins>
+      <!-- <plugin> -->
+      <!-- 	<groupId>org.ensime.maven.plugins</groupId> -->
+      <!-- 	<artifactId>ensime-maven</artifactId> -->
+      <!-- 	<version>1.2.0</version> -->
+      <!-- </plugin> -->
       <plugin>
-      	<groupId>org.ensime.maven.plugins</groupId>
-      	<artifactId>ensime-maven</artifactId>
-      	<version>1.2.0</version>
+      	<groupId>org.apache.maven.plugins</groupId>
+      	<artifactId>maven-install-plugin</artifactId>
+      	<version>2.5.2</version>
+      	<executions>
+      	  <execution>
+      	    <phase>initialize</phase>
+      	    <goals>
+      	      <goal>install-file</goal>
+      	    </goals>
+      	    <configuration>
+      	      <groupId>org.protonchamber</groupId>
+      	      <artifactId>apg.jar</artifactId>
+      	      <version>1.0</version>
+      	      <packaging>jar</packaging>
+      	      <file>${basedir}/lib/apg.jar</file>
+      	    </configuration>
+      	  </execution>
+      	</executions>
       </plugin>
       <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-install-plugin</artifactId>
-	<version>2.5.2</version>
-	<executions>
-	  <execution>
-	    <phase>initialize</phase>
-	    <goals>
-	      <goal>install-file</goal>
-	    </goals>
-	    <configuration>
-	      <groupId>org.protonchamber</groupId>
-	      <artifactId>apg.jar</artifactId>
-	      <version>1.0</version>
-	      <packaging>jar</packaging>
-	      <file>${basedir}/lib/apg.jar</file>
-	    </configuration>
-	  </execution>
-	</executions>
-      </plugin>
-      <plugin>
-	<artifactId>maven-antrun-plugin</artifactId>
-	<executions>
-	  <execution>
-	    <id>generate-sources</id>
-	    <phase>generate-sources</phase>
-	    <configuration>
+      	<artifactId>maven-antrun-plugin</artifactId>
+      	<executions>
+      	  <execution>
+      	    <id>generate-sources</id>
+      	    <phase>generate-sources</phase>
+      	    <configuration>
               <tasks>
-		<mkdir dir="target/generated-sources/java/"/>
+      		<mkdir dir="target/generated-sources/java/"/>
               </tasks>
-	    </configuration>
-	    <goals>
+      	    </configuration>
+      	    <goals>
               <goal>run</goal>
-	    </goals>
-	  </execution>
-	</executions>
+      	    </goals>
+      	  </execution>
+      	</executions>
       </plugin>
       <plugin>
 	<groupId>org.codehaus.mojo</groupId>
@@ -64,22 +64,31 @@
 	<version>1.6.0</version>
 	<executions>
 	  <execution>
-	    <phase>generate-sources</phase>
+      	    <phase>generate-sources</phase>
 	    <goals>
-	      <goal>java</goal>
+	      <goal>exec</goal>
 	    </goals>
-	    <configuration>
-	      <mainClass>apg.Generator</mainClass>
-	      <commandlineArgs>/javadoc=Test /in=${basedir}/src/main/resources/odata-abnf-construction-rules.txt /log=test.log /package=org.protonchamber /dir=${project.build.directory}/generated-sources/java/</commandlineArgs>
-	    </configuration>
 	  </execution>
 	</executions>
-      </plugin>
+	<configuration>
+          <executable>java</executable>
+          <arguments>
+	    <argument>-classpath</argument>
+	    <classpath/>
+	    <argument>apg.Generator</argument>
+            <argument>/javadoc=Test</argument>
+            <argument>/in=${basedir}/src/main/resources/odata-abnf-construction-rules.txt</argument>
+            <argument>/log=test.log</argument>
+            <argument>/package=org.protonchamber</argument>
+            <argument>/dir=${project.build.directory}/generated-sources/java/</argument>
+          </arguments>
+	</configuration>
+      </plugin>      
       <plugin>
-	<groupId>org.codehaus.mojo</groupId>
-	<artifactId>build-helper-maven-plugin</artifactId>
-	<version>3.0.0</version>
-	<executions>
+      	<groupId>org.codehaus.mojo</groupId>
+      	<artifactId>build-helper-maven-plugin</artifactId>
+      	<version>3.0.0</version>
+      	<executions>
           <execution>
             <id>add-source</id>
             <phase>generate-sources</phase>
@@ -92,25 +101,25 @@
               </sources>
             </configuration>
           </execution>
-	</executions>
+      	</executions>
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
         <configuration>
-	  <source>1.8</source>
-	  <target>1.8</target>
-	  <compilerArgument>-Xlint:unchecked</compilerArgument>
+      	  <source>1.8</source>
+      	  <target>1.8</target>
+      	  <!-- <compilerArgument>-Xlint:unchecked</compilerArgument> -->
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-	<version>2.6</version>
+      	<version>2.6</version>
         <configuration>
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-	      <mainClass>org.neptunestation.protonchamber.Protonchamber</mainClass>
+      	      <mainClass>org.neptunestation.protonchamber.Protonchamber</mainClass>
             </manifest>
           </archive>
         </configuration>
