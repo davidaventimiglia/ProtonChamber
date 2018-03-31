@@ -33,7 +33,7 @@
       	    </goals>
       	    <configuration>
       	      <groupId>org.protonchamber</groupId>
-      	      <artifactId>apg.jar</artifactId>
+      	      <artifactId>apg</artifactId>
       	      <version>1.0</version>
       	      <packaging>jar</packaging>
       	      <file>${basedir}/lib/apg.jar</file>
