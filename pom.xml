@@ -77,7 +77,7 @@
 	    <classpath/>
 	    <argument>apg.Generator</argument>
             <argument>/javadoc=Test</argument>
-            <argument>/in=${basedir}/src/main/resources/odata-abnf-construction-rules.txt</argument>
+            <argument>/in=${basedir}/src/main/resources/odata-abnf-construction-rules-ext.txt</argument>
             <argument>/log=test.log</argument>
             <argument>/package=org.protonchamber</argument>
             <argument>/dir=${project.build.directory}/generated-sources/java/</argument>

@@ -1,0 +1,16 @@
+People
+People('russellwhyte')
+Airports('KSFO')/Name
+People?$filter=FirstName eq 'Scott'
+Airports?$filter=contains(Location/Address, 'San Francisco')
+People?$filter=Gender eq Microsoft.OData.SampleService.Models.TripPin.PersonGender'Female'
+People?$expand=Trips($filter=Name eq 'Trip in US')
+People('scottketchum')/Trips?$orderby=EndsAt desc
+People?$top=2
+People?$skip=18
+People/$count
+People('keithpinckney')?$expand=Friends
+Airports?$select=Name, IcaoCode
+People?$search=Boise
+People?$filter=Emails/any(s:endswith(s, 'contoso.com'))
+
