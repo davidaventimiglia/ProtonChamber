@@ -19,6 +19,5 @@ public class ProtonChamber {
 	Ast ast = parser.enableAst(true);
 	for (Test.RuleNames r : Test.RuleNames.values()) ast.enableRuleNode(r.ruleID(), true);
 	ast.enableRuleNode(Test.RuleNames.DUMMYSTARTRULE.ruleID(), true);
-	ast.enableRuleNode(Test.RuleNames.
 	Result result = parser.parse();
 	ast.display(out, true);}}

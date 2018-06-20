@@ -1,3 +1,6 @@
 target
 .ensime
 .ensime_cache
+/GPATH
+/GRTAGS
+/GTAGS
