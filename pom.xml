@@ -16,11 +16,6 @@
 
   <build>
     <plugins>
-      <!-- <plugin> -->
-      <!-- 	<groupId>org.ensime.maven.plugins</groupId> -->
-      <!-- 	<artifactId>ensime-maven</artifactId> -->
-      <!-- 	<version>1.2.0</version> -->
-      <!-- </plugin> -->
       <plugin>
       	<groupId>org.apache.maven.plugins</groupId>
       	<artifactId>maven-install-plugin</artifactId>
