@@ -22,130 +22,123 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 			      .getClassLoader(),
 			      new Class[]{AutoCloseableDatabaseMetaData.class},
 			      new InvocationHandler () {
-				  @Override
-				  public Object invoke (Object proxy, Method method, Object[] args) throws Throwable {
+				  @Override public Object invoke (Object proxy, Method method, Object[] args) throws Throwable {
 				      if ("close".equals(method.getName())) return null;
 				      return method.invoke(m, args);}});}
 
-    class JDBCRoot {
-	Map<String, JDBCSchema> schemas = new HashMap<>();
-	JDBCRoot (DatabaseMetaData m, ResultSet t, ResultSet x) throws NamingException, SQLException {
+    class ProtonEdmDataModel {
+	Map<String, ProtonSchema> schemas = new HashMap<>();
+	ProtonEdmDataModel (DatabaseMetaData m, ResultSet t, ResultSet x) throws NamingException, SQLException {
 	    super();
-	    while (t.next()) if (m.getUserName().equals(t.getString(GRANTEE)) && "select".equalsIgnoreCase(t.getString(PRIVILEGE))) addSchema(m, t);
-	    while (x.next()) if (schemas.containsKey(x.getString(PKTABLE_SCHEM))) {
-		    schemas.get(x.getString(PKTABLE_SCHEM)).getEntityType(x.getString(PKTABLE_NAME)).addNavigationProperty(m, x);}}
+	    while (t.next()) addSchema(m, t);
+	    while (x.next()) if (schemas.containsKey(x.getString(PKTABLE_SCHEM)))
+				 schemas.get(x.getString(PKTABLE_SCHEM)).getEntityType(x.getString(PKTABLE_NAME)).addNavigationProperty(m, x);}
 	void addSchema (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
-	    if (!schemas.containsKey(r.getString(TABLE_SCHEM))) schemas.put(r.getString(TABLE_SCHEM), new JDBCSchema(m, r));
-	    if (m.getUserName().equals(r.getString(GRANTEE)) && "select".equalsIgnoreCase(r.getString(PRIVILEGE))) schemas.get(r.getString(TABLE_SCHEM)).addEntityType(m, r);
+	    if (!schemas.containsKey(r.getString(TABLE_SCHEM))) schemas.put(r.getString(TABLE_SCHEM), new ProtonSchema(m, r));
+	    schemas.get(r.getString(TABLE_SCHEM)).addEntityType(m, r);
 	    schemas.get(r.getString(TABLE_SCHEM)).addEntityContainer(m, r);}}
 
-    class JDBCSchema extends CsdlSchema {
-	Map<String, JDBCEntityContainer> entityContainers = new HashMap<>();
-	Map<String, JDBCEntityType> entityTypes = new HashMap<>();
-	JDBCSchema (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
+    class ProtonSchema extends CsdlSchema {
+	Map<String, ProtonEntityContainer> entityContainers = new HashMap<>();
+	Map<String, ProtonEntityType> entityTypes = new HashMap<>();
+	ProtonSchema (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
 	    super();
 	    setNamespace(r.getString(TABLE_SCHEM));}
-	@Override
-	public CsdlEntityContainer getEntityContainer () {
+	@Override public CsdlEntityContainer getEntityContainer () {
 	    for (CsdlEntityContainer e : entityContainers.values()) return e;
 	    return null;}
 	public List<CsdlEntityContainer> getEntityContainers () {
 	    return new ArrayList<CsdlEntityContainer>(entityContainers.values());}
-	@Override
-	public List<CsdlEntityType> getEntityTypes () {
+	@Override public List<CsdlEntityType> getEntityTypes () {
 	    return new ArrayList<CsdlEntityType>(entityTypes.values());}
-	@Override
-	public JDBCEntityType getEntityType (String name) {
+	@Override public ProtonEntityType getEntityType (String name) {
 	    return entityTypes.get(name);}
-	JDBCEntityContainer getEntityContainer (String name) {
+	ProtonEntityContainer getEntityContainer (String name) {
 	    return entityContainers.get(name);}
 	void addComplexTypes () {}
 	void addEntityContainer (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
-	    if (!entityContainers.containsKey(r.getString(TABLE_SCHEM))) entityContainers.put(r.getString(TABLE_SCHEM), new JDBCEntityContainer(m, r));
-	    if (m.getUserName().equals(r.getString(GRANTEE)) && "select".equalsIgnoreCase(r.getString(PRIVILEGE))) entityContainers.get(r.getString(TABLE_SCHEM)).addEntitySet(m, r);}
+	    if (!entityContainers.containsKey(r.getString(TABLE_SCHEM))) entityContainers.put(r.getString(TABLE_SCHEM), new ProtonEntityContainer(m, r));
+	    entityContainers.get(r.getString(TABLE_SCHEM)).addEntitySet(m, r);}
 	void addEntityType (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
-	    if (!entityTypes.containsKey(r.getString(TABLE_NAME))) entityTypes.put(r.getString(TABLE_NAME), new JDBCEntityType(m, r));}}
+	    if (!entityTypes.containsKey(r.getString(TABLE_NAME))) entityTypes.put(r.getString(TABLE_NAME), new ProtonEntityType(m, r));}}
 
-    class JDBCNavigationProperty extends CsdlNavigationProperty {
-	JDBCNavigationProperty (DatabaseMetaData m, ResultSet r) throws SQLException {
+    class ProtonNavigationProperty extends CsdlNavigationProperty {
+	ProtonNavigationProperty (DatabaseMetaData m, ResultSet r) throws SQLException {
 	    super();
 	    // setFromRole(r.getString(PKTABLE_NAME));
 	    setName(r.getString(FKTABLE_NAME));}}
-	    // setRelationship(new FullQualifiedName(r.getString(PKTABLE_SCHEM), r.getString(FK_NAME)));
-	    // setToRole(r.getString(FKTABLE_NAME));}}
+    // setRelationship(new FullQualifiedName(r.getString(PKTABLE_SCHEM), r.getString(FK_NAME)));
+    // setToRole(r.getString(FKTABLE_NAME));}}
 
-    // class JDBCReferentialConstraint extends CsdlReferentialConstraint {
-    // 	JDBCReferentialConstraint (DatabaseMetaData m, ResultSet r, AssociationEnd end1, AssociationEnd end2) throws SQLException {
-    // 	    super();
-    // 	    setDependent(new JDBCReferentialConstraintRole(m, r, end2, false));
-    // 	    setPrincipal(new JDBCReferentialConstraintRole(m, r, end1, true));}}
+    // class ProtonReferentialConstraint extends CsdlReferentialConstraint {
+    //	ProtonReferentialConstraint (DatabaseMetaData m, ResultSet r, AssociationEnd end1, AssociationEnd end2) throws SQLException {
+    //	    super();
+    //	    setDependent(new ProtonReferentialConstraintRole(m, r, end2, false));
+    //	    setPrincipal(new ProtonReferentialConstraintRole(m, r, end1, true));}}
 
-    // class JDBCReferentialConstraintRole extends CsdlReferentialConstraintRole {
-    // 	JDBCReferentialConstraintRole (DatabaseMetaData m, ResultSet r, AssociationEnd end, boolean end1) throws SQLException {
-    // 	    super();
-    // 	    setRole(end.getRole());
-    // 	    setPropertyRefs(new ArrayList<PropertyRef>());
-    // 	    getPropertyRefs().add(new JDBCPropertyRef(m, r, end1));}}
+    // class ProtonReferentialConstraintRole extends CsdlReferentialConstraintRole {
+    //	ProtonReferentialConstraintRole (DatabaseMetaData m, ResultSet r, AssociationEnd end, boolean end1) throws SQLException {
+    //	    super();
+    //	    setRole(end.getRole());
+    //	    setPropertyRefs(new ArrayList<PropertyRef>());
+    //	    getPropertyRefs().add(new ProtonPropertyRef(m, r, end1));}}
 
-    class JDBCPropertyRef extends CsdlPropertyRef {
-	JDBCPropertyRef (DatabaseMetaData m, ResultSet r, boolean end1) throws SQLException {
+    class ProtonPropertyRef extends CsdlPropertyRef {
+	ProtonPropertyRef (DatabaseMetaData m, ResultSet r, boolean end1) throws SQLException {
 	    super();
 	    setName(end1 ? r.getString(PKCOLUMN_NAME) : r.getString(FKCOLUMN_NAME));}}
 
-    // class JDBCAssociationEnd extends CsdlAssociationEnd {
-    // 	JDBCAssociationEnd (DatabaseMetaData m, ResultSet r, boolean end1) throws SQLException {
-    // 	    super();
-    // 	    setRole(end1 ? r.getString(PKTABLE_NAME) : r.getString(FKTABLE_NAME));
-    // 	    setMultiplicity(end1 ? EdmMultiplicity.ONE : EdmMultiplicity.MANY);
-    // 	    setType(end1 ? new FullQualifiedName(r.getString(PKTABLE_SCHEM), r.getString(PKTABLE_NAME)) : new FullQualifiedName(r.getString(FKTABLE_SCHEM), r.getString(FKTABLE_NAME)));
-    // 	    setOnDelete(new JDBCOnDelete(m, r, end1));}}
+    // class ProtonAssociationEnd extends CsdlAssociationEnd {
+    //	ProtonAssociationEnd (DatabaseMetaData m, ResultSet r, boolean end1) throws SQLException {
+    //	    super();
+    //	    setRole(end1 ? r.getString(PKTABLE_NAME) : r.getString(FKTABLE_NAME));
+    //	    setMultiplicity(end1 ? EdmMultiplicity.ONE : EdmMultiplicity.MANY);
+    //	    setType(end1 ? new FullQualifiedName(r.getString(PKTABLE_SCHEM), r.getString(PKTABLE_NAME)) : new FullQualifiedName(r.getString(FKTABLE_SCHEM), r.getString(FKTABLE_NAME)));
+    //	    setOnDelete(new ProtonOnDelete(m, r, end1));}}
 
-    // class JDBCOnDelete extends CsdlOnDelete {
-    // 	JDBCOnDelete (DatabaseMetaData m, ResultSet r, boolean end1) throws SQLException {
-    // 	    super();
-    // 	    setAction(end1 && DatabaseMetaData.importedKeyCascade==r.getShort(DELETE_RULE) ? EdmAction.Cascade : EdmAction.None);}}
+    // class ProtonOnDelete extends CsdlOnDelete {
+    //	ProtonOnDelete (DatabaseMetaData m, ResultSet r, boolean end1) throws SQLException {
+    //	    super();
+    //	    setAction(end1 && DatabaseMetaData.importedKeyCascade==r.getShort(DELETE_RULE) ? EdmAction.Cascade : EdmAction.None);}}
 
-    // class JDBCAnnotationAttribute extends CsdlAnnotationAttribute {}
+    // class ProtonAnnotationAttribute extends CsdlAnnotationAttribute {}
 
-    // class JDBCAnnotationElement extends CsdlAnnotationElement {}
+    // class ProtonAnnotationElement extends CsdlAnnotationElement {}
 
-    // class JDBCComplexType extends CsdlComplexType {}
+    // class ProtonComplexType extends CsdlComplexType {}
 
-    // class JDBCUsing extends CsdlUsing {}
+    // class ProtonUsing extends CsdlUsing {}
 
-    class JDBCEntityType extends CsdlEntityType {
+    class ProtonEntityType extends CsdlEntityType {
 	Map<String, CsdlNavigationProperty> navigationProperties = new HashMap<>();
 	void addNavigationProperty (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
-	    if (!navigationProperties.containsKey(r.getString(FK_NAME))) navigationProperties.put(r.getString(FK_NAME), new JDBCNavigationProperty(m, r));}
-	JDBCEntityType (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
+	    if (!navigationProperties.containsKey(r.getString(FK_NAME))) navigationProperties.put(r.getString(FK_NAME), new ProtonNavigationProperty(m, r));}
+	ProtonEntityType (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
 	    super();
 	    setName(r.getString(TABLE_NAME));
 	    setProperties(makeProperties(m, r.getString(TABLE_SCHEM), r.getString(TABLE_NAME)));
 	    setNavigationProperties(new ArrayList<CsdlNavigationProperty>());
 	    setKey(makeKey(m, r.getString(TABLE_SCHEM), r.getString(TABLE_NAME)));}
-	@Override
-	public List<CsdlNavigationProperty> getNavigationProperties () {
+	@Override public List<CsdlNavigationProperty> getNavigationProperties () {
 	    return new ArrayList<CsdlNavigationProperty>(navigationProperties.values());}}
 
-    class JDBCEntityContainer extends CsdlEntityContainer {
-	Map<String, JDBCEntitySet> entitySets = new HashMap<>();
-	JDBCEntityContainer (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
+    class ProtonEntityContainer extends CsdlEntityContainer {
+	Map<String, ProtonEntitySet> entitySets = new HashMap<>();
+	ProtonEntityContainer (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
 	    super();
 	    setName(r.getString(TABLE_SCHEM));}
-	@Override
-	public List<CsdlEntitySet> getEntitySets () {
+	@Override public List<CsdlEntitySet> getEntitySets () {
 	    return new ArrayList<CsdlEntitySet>(entitySets.values());}
-	@Override
-	public CsdlEntitySet getEntitySet (String name) {
+	@Override public CsdlEntitySet getEntitySet (String name) {
 	    return entitySets.get(name);}
 	void addEntitySet (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
-	    if (!entitySets.containsKey(r.getString(TABLE_NAME))) entitySets.put(r.getString(TABLE_NAME), new JDBCEntitySet(m, r));}}
+	    if (!entitySets.containsKey(r.getString(TABLE_NAME))) entitySets.put(r.getString(TABLE_NAME), new ProtonEntitySet(m, r));}}
 
-    class JDBCEntitySet extends CsdlEntitySet {
-	JDBCEntitySet (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
+    class ProtonEntitySet extends CsdlEntitySet {
+	ProtonEntitySet (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
 	    super();
 	    setName(r.getString(TABLE_NAME));}}
-	    // setType(new FullQualifiedName(r.getString(TABLE_SCHEM), r.getString(TABLE_NAME)));}}
+    // setType(new FullQualifiedName(r.getString(TABLE_SCHEM), r.getString(TABLE_NAME)));}}
 
     // --------------------------------------------------------------------------------
     // Class-level definitions
@@ -232,9 +225,9 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 
     protected List<CsdlPropertyRef> makeKey (DatabaseMetaData meta, String schema, String table) throws NamingException, SQLException {
 	return null;}
-	// Key k = new Key();
-	// k.setKeys(makeKeyProperties(meta, schema, table));
-	// return k;}
+    // Key k = new Key();
+    // k.setKeys(makeKeyProperties(meta, schema, table));
+    // return k;}
 
     protected List<CsdlPropertyRef> makeKeyProperties (DatabaseMetaData meta, String schema, String table) throws NamingException, SQLException {
 	try (ResultSet r = meta.getPrimaryKeys(null, schema, table)) {
@@ -280,8 +273,8 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 
     // @Override
     // public CsdlEntityContainerInfo getEntityContainerInfo (String name) throws ODataException {
-    // 	if (name==null) return new CsdlEntityContainerInfo().setName("DefaultEntityContainer").setDefaultEntityContainer(true);
-    // 	return new CsdlEntityContainerInfo().setName(name);}
+    //	if (name==null) return new CsdlEntityContainerInfo().setName("DefaultEntityContainer").setDefaultEntityContainer(true);
+    //	return new CsdlEntityContainerInfo().setName(name);}
 
     @Override
     public CsdlEntityType getEntityType (FullQualifiedName edmFQName) throws ODataException {
@@ -298,5 +291,5 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	     AutoCloseableDatabaseMetaData m = closeable(c.getMetaData());
 	     ResultSet t = m.getTablePrivileges(null, null, null);
 	     ResultSet x = m.getCrossReference(null, null, null, null, null, null)) {
-	    return new ArrayList<CsdlSchema>((new JDBCRoot(m, t, x).schemas.values()));}
+	    return new ArrayList<CsdlSchema>((new ProtonEdmDataModel(m, t, x).schemas.values()));}
 	catch (Throwable e) {throw new ODataException(e);}}}
