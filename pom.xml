@@ -6,7 +6,7 @@
   <groupId>org.protonchamber</groupId>
   <artifactId>ProtonChamber</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>war</packaging>
   <name>Protonchamber</name>
   <url>http://www.protonchamber.org</url>
 
@@ -123,6 +123,13 @@
   </build>
 
   <dependencies>
+<!-- https://mvnrepository.com/artifact/javax.servlet/servlet-api -->
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>servlet-api</artifactId>
+    <version>2.5</version>
+    <!-- <scope>provided</scope> -->
+</dependency>
     <dependency>
       <groupId>org.apache.olingo</groupId>
       <artifactId>odata-commons-api</artifactId>
