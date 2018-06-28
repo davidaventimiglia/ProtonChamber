@@ -1,13 +1,13 @@
 # -*- mode: restclient; -*-
 
-#
+# undeploy
 GET http://localhost:8080/manager/text/undeploy?path=/ProtonChamber
 Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
 
-# 
+# deploy
 GET http://localhost:8080/manager/text/deploy?war=file:/home/dventimi/work/Bitbucket/protonchamber/target/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
 Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
 
-#
+# invoke
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
