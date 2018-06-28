@@ -13,9 +13,8 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 
     class ProtonEdmDataModel {
 	Map<String, ProtonSchema> schemas = new HashMap<>();
-	ProtonEdmDataModel (DatabaseMetaData m, ResultSet t, ResultSet x) throws NamingException, SQLException {
+	ProtonEdmDataModel (DatabaseMetaData m, ResultSet t) throws NamingException, SQLException {
 	    while (t.next()) addSchema(m, t);}
-	// while (x.next()) if (schemas.containsKey(x.getString(PKTABLE_SCHEM))) schemas.get(x.getString(PKTABLE_SCHEM)).getEntityType(x.getString(PKTABLE_NAME)).addNavigationProperty(m, x);}
 	void addSchema (DatabaseMetaData m, ResultSet r) throws NamingException, SQLException {
 	    schemas.putIfAbsent(r.getString(TABLE_SCHEM), new ProtonSchema(m, r));
 	    schemas.get(r.getString(TABLE_SCHEM)).addEntityType(m, r);
@@ -139,7 +138,7 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public List<CsdlSchema> getSchemas () throws ODataException {
-	try (ResultSet t = m.getTablePrivileges(null, null, null);
-	     ResultSet x = m.getCrossReference(null, null, null, null, null, null)) {
-	    return new ArrayList<CsdlSchema>((new ProtonEdmDataModel(m, t, x).schemas.values()));}
-	catch (Throwable e) {throw new ODataException(e);}}}
+	try (ResultSet t = m.getColumns(null, null, null, null)) {
+	    return new ArrayList<CsdlSchema>((new ProtonEdmDataModel(m, t).schemas.values()));}
+	catch (Throwable e) {throw new ODataException(e);}}
+}

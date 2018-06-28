@@ -16,17 +16,14 @@ public class ProtonServlet extends HttpServlet {
 
     @Override
     protected void service (final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-	try {
-	    Context initCtx = new InitialContext();
-	    Context envCtx = (Context)initCtx.lookup("java:comp/env");
-	    DataSource ds = (DataSource)envCtx.lookup("jdbc/ProtonDB");
-	    Connection conn = ds.getConnection();
+	try (Connection conn = ((DataSource)((Context)(new InitialContext()).lookup("java:comp/env")).lookup("jdbc/ProtonDB")).getConnection()) {
 	    OData odata = OData.newInstance();
 	    ServiceMetadata edm = odata.createServiceMetadata(new DatabaseMetaDataEdmProvider(conn.getMetaData()), new ArrayList<EdmxReference>());
 	    ODataHttpHandler handler = odata.createHandler(edm);
-	    // handler.register(new DemoEntityCollectionProcessor());
+	    handler.register(new ProtonEntityCollectionProcessor());
 	    handler.process(req, resp);
 	} catch (RuntimeException e) {
+	    log(e.getMessage());
 	    throw new ServletException(e);
 	}
 	catch (SQLException | NamingException e) {
