@@ -21,7 +21,9 @@ public class ProtonServlet extends HttpServlet {
 	    ServiceMetadata edm = odata.createServiceMetadata(new DatabaseMetaDataEdmProvider(conn.getMetaData()), new ArrayList<EdmxReference>());
 	    ODataHttpHandler handler = odata.createHandler(edm);
 	    handler.register(new ProtonEntityCollectionProcessor());
+	    log("about to handle request");
 	    handler.process(req, resp);
+	    log("handled request");
 	} catch (RuntimeException e) {
 	    log(e.getMessage());
 	    throw new ServletException(e);

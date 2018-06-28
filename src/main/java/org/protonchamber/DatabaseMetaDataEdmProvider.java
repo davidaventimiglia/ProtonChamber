@@ -125,7 +125,7 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
     @Override
     public CsdlEntitySet getEntitySet (FullQualifiedName entityContainer, String name) throws ODataException {
 	try {return makeEntitySet(entityContainer.toString(), name);}
-	catch (Throwable e) {throw new ODataException(e);}}
+	catch (Throwable e) {e.printStackTrace(System.out); throw new ODataException(e);}}
 
     @Override
     public CsdlEntityType getEntityType (FullQualifiedName edmFQName) throws ODataException {
@@ -138,7 +138,12 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public List<CsdlSchema> getSchemas () throws ODataException {
-	try (ResultSet t = m.getColumns(null, null, null, null)) {
-	    return new ArrayList<CsdlSchema>((new ProtonEdmDataModel(m, t).schemas.values()));}
-	catch (Throwable e) {throw new ODataException(e);}}
+	try (ResultSet r = m.getSchemas()) {
+	    List<CsdlSchema> schemas = new ArrayList<>();
+	    while (r.next()) {
+		CsdlSchema schema = new CsdlSchema();
+		schema.setNamespace(r.getString("TABLE_SCHEM"));
+		schemas.add(schema);}
+	    return schemas;}
+	catch (Throwable e) {e.printStackTrace(System.out); throw new ODataException(e);}}
 }
