@@ -27,22 +27,23 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 
     static class ProtonSchema extends CsdlSchema implements Processor {
 	Map<String, ProtonEntityType> entityTypes = new HashMap<>();
-	ProtonEntityContainer entityContainer;
+	Map<String, ProtonEntityContainer> entityContainers = new HashMap<>();
 	public ProtonSchema (ResultSet r) throws SQLException {
 	    super();
 	    setNamespace(r.getString("TABLE_SCHEM"));}
 	@Override
 	public void process (ResultSet r) throws SQLException {
-	    entityTypes.putIfAbsent(r.getString("TABLE_NAME"), new ProtonEntityType(r));
+	    if (r.getString("TABLE_SCHEM").equals(getNamespace())) entityTypes.putIfAbsent(r.getString("TABLE_NAME"), new ProtonEntityType(r));
+	    if (r.getString("TABLE_SCHEM").equals(getNamespace())) entityContainers.putIfAbsent("entityContainer", new ProtonEntityContainer(this, r));
 	    for (Processor p : entityTypes.values()) p.process(r);
-	    entityContainer = new ProtonEntityContainer(r);
-	    entityContainer.process(r);}
+	    for (Processor p : entityContainers.values()) p.process(r);}
 	@Override
 	public List<CsdlEntityType> getEntityTypes () {
 	    return new ArrayList<>(entityTypes.values());}
 	@Override
 	public CsdlEntityContainer getEntityContainer () {
-	    return entityContainer;}}
+	    for (CsdlEntityContainer e : entityContainers.values()) return e;
+	    throw new IllegalStateException();}}
 
     static class ProtonEntityType extends CsdlEntityType implements Processor {
 	public ProtonEntityType (ResultSet r) throws SQLException {
@@ -52,13 +53,17 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	public void process (ResultSet r) {}}
 
     static class ProtonEntityContainer extends CsdlEntityContainer implements Processor {
+	CsdlSchema schema;
 	Map<String, ProtonEntitySet> entitySets = new HashMap<>();
-	public ProtonEntityContainer (ResultSet r) throws SQLException {
+	public ProtonEntityContainer (CsdlSchema schema, ResultSet r) throws SQLException {
 	    super();
+	    this.schema = schema;
 	    setName("EntityContainer");}
+	public CsdlSchema getSchema () {
+	    return schema;}
 	@Override
 	public void process (ResultSet r) throws SQLException {
-	    entitySets.putIfAbsent(r.getString("TABLE_NAME"), new ProtonEntitySet(r));
+	    if (r.getString("TABLE_SCHEM").equals(getSchema().getNamespace())) entitySets.putIfAbsent(r.getString("TABLE_NAME"), new ProtonEntitySet(r));
 	    for (Processor p : entitySets.values()) p.process(r);}
 	@Override
 	public List<CsdlEntitySet> getEntitySets () {
