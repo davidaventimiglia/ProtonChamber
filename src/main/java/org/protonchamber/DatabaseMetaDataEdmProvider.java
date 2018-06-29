@@ -27,7 +27,7 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 
     static class ProtonSchema extends CsdlSchema implements Processor {
 	Map<String, ProtonEntityType> entityTypes = new HashMap<>();
-	ProtonEntityContainer entityContainer = new ProtonEntityContainer();
+	ProtonEntityContainer entityContainer;
 	public ProtonSchema (ResultSet r) throws SQLException {
 	    super();
 	    setNamespace(r.getString("TABLE_SCHEM"));}
@@ -35,6 +35,7 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	public void process (ResultSet r) throws SQLException {
 	    entityTypes.putIfAbsent(r.getString("TABLE_NAME"), new ProtonEntityType(r));
 	    for (Processor p : entityTypes.values()) p.process(r);
+	    entityContainer = new ProtonEntityContainer(r);
 	    entityContainer.process(r);}
 	@Override
 	public List<CsdlEntityType> getEntityTypes () {
@@ -56,7 +57,7 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    super();
 	    setName("EntityContainer");}
 	@Override
-	public void process (ResultSet r) {
+	public void process (ResultSet r) throws SQLException {
 	    entitySets.putIfAbsent(r.getString("TABLE_NAME"), new ProtonEntitySet(r));
 	    for (Processor p : entitySets.values()) p.process(r);}
 	@Override
@@ -66,14 +67,8 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
     static class ProtonEntitySet extends CsdlEntitySet implements Processor {
 	public ProtonEntitySet (ResultSet r) throws SQLException {
 	    super();
-	    setName(r.getString("TABLE_NAME"));}
-	@Override
-	public void process (ResultSet r) {}}
-
-    static class ProtonEntitySet extends CsdlEntitySet implements Processor {
-	public ProtonEntitySet (ResultSet r) throws SQLException {
-	    super();
-	    setName(r.getString("TABLE_NAME"));}
+	    setName(r.getString("TABLE_NAME"));
+	    setType(new FullQualifiedName(r.getString("TABLE_SCHEM"), r.getString("TABLE_NAME")));}
 	@Override
 	public void process (ResultSet r) {}}
     
