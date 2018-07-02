@@ -56,11 +56,10 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    setName(r.getString("TABLE_NAME"));}
 	public CsdlSchema getSchema () {
 	    return schema;}
-	// @Override
-	// public void process (ResultSet r) throws SQLException {
-	//     if (r.getString("TABLE_SCHEM").equals(getSchema().getNamespace())) if (r.getString("TABLE_NAME").equals(getName())) properties.putIfAbsent(r.getString("COLUMN_NAME"), new ProtonProperty(this, r));
-	// }
-	    // for (Processor p : properties.values()) p.process(r);}
+	@Override
+	public void process (ResultSet r) throws SQLException {
+	    if (r.getString("TABLE_SCHEM").equals(getSchema().getNamespace())) if (r.getString("TABLE_NAME").equals(getName())) properties.putIfAbsent(r.getString("COLUMN_NAME"), new ProtonProperty(this, r));
+	    for (Processor p : properties.values()) p.process(r);}
 	@Override
 	public List<CsdlProperty> getProperties () {
 	    return new ArrayList<>(properties.values());}}
@@ -70,9 +69,8 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	public ProtonProperty (CsdlEntityType entityType, ResultSet r) throws SQLException {
 	    super();
 	    this.entityType = entityType;
-	    setName(r.getString("COLUMN_NAME"));}
-	@Override
-	public void process (ResultSet r) {}}
+	    setName(r.getString("COLUMN_NAME"));
+	    setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());}}
 
     static class ProtonEntityContainer extends CsdlEntityContainer implements Processor {
 	CsdlSchema schema;
@@ -97,9 +95,7 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    super();
 	    this.entityContainer = entityContainer;
 	    setName(r.getString("TABLE_NAME"));
-	    setType(new FullQualifiedName(r.getString("TABLE_SCHEM"), r.getString("TABLE_NAME")));}
-	@Override
-	public void process (ResultSet r) {}}
+	    setType(new FullQualifiedName(r.getString("TABLE_SCHEM"), r.getString("TABLE_NAME")));}}
     
     public DatabaseMetaDataEdmProvider (DatabaseMetaData m) {
 	super();
@@ -111,5 +107,5 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	try (ResultSet r = m.getColumns(null, null, null, null)) {
 	    while (r.next()) root.process(r);
 	    return root.getSchemas();}
-	catch (Throwable e) {e.printStackTrace(System.out); throw new ODataException(e);}}
-}
+	catch (Throwable e) {e.printStackTrace(System.out); throw new ODataException(e);}}}
+
