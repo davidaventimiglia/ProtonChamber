@@ -12,6 +12,65 @@ import org.apache.olingo.commons.api.ex.*;
 public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
     protected DatabaseMetaData m;
 
+    static Map<Integer, EdmPrimitiveTypeKind> types = new HashMap<>();
+
+    // Binary           byte[], Byte[]
+    // Boolean          Boolean
+    // Byte             Short, Byte, Integer, Long, BigInteger
+    // Date             Calendar, Date, Timestamp, Time, Long
+    // DateTimeOffset   Timestamp, Calendar, Date, Time, Long
+    // Decimal          BigDecimal, BigInteger, Double, Float, Byte, Short, Integer, Long
+    // Double           Double, Float, BigDecimal, Byte, Short, Integer, Long
+    // Duration         BigDecimal, BigInteger, Double, Float, Byte, Short, Integer, Long
+    // Guid             UUID
+    // Int16            Short, Byte, Integer, Long, BigInteger
+    // Int32            Integer, Byte, Short, Long, BigInteger
+    // Int64            Long, Byte, Short, Integer, BigInteger
+    // SByte            Byte, Short, Integer, Long, BigInteger
+    // Single           Float, Double, BigDecimal, Byte, Short, Integer, Long
+    // String           String
+    // TimeOfDay        Calendar, Date, Timestamp, Time, Long
+
+    // static {types.put(Types.ARRAY, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.BIGINT, EdmPrimitiveTypeKind.Int64);}
+    static {types.put(Types.BINARY, EdmPrimitiveTypeKind.Binary);}
+    static {types.put(Types.BIT, EdmPrimitiveTypeKind.Boolean);}
+    static {types.put(Types.BLOB, EdmPrimitiveTypeKind.Binary);}
+    static {types.put(Types.BOOLEAN, EdmPrimitiveTypeKind.Boolean);}
+    static {types.put(Types.CHAR, EdmPrimitiveTypeKind.String);}
+    static {types.put(Types.CLOB, EdmPrimitiveTypeKind.String);}
+    // static {types.put(Types.DATALINK, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.DATE, EdmPrimitiveTypeKind.Date);}
+    static {types.put(Types.DECIMAL, EdmPrimitiveTypeKind.Decimal);}
+    // static {types.put(Types.DISTINCT, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.DOUBLE, EdmPrimitiveTypeKind.Double);}
+    static {types.put(Types.FLOAT, EdmPrimitiveTypeKind.Double);}
+    static {types.put(Types.INTEGER, EdmPrimitiveTypeKind.Int32);}
+    // static {types.put(Types.JAVA_OBJECT, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.LONGNVARCHAR, EdmPrimitiveTypeKind.String);}
+    static {types.put(Types.LONGVARBINARY, EdmPrimitiveTypeKind.Binary);}
+    static {types.put(Types.LONGVARCHAR, EdmPrimitiveTypeKind.String);}
+    static {types.put(Types.NCHAR, EdmPrimitiveTypeKind.String);}
+    static {types.put(Types.NCLOB, EdmPrimitiveTypeKind.String);}
+    // static {types.put(Types.NULL, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.NUMERIC, EdmPrimitiveTypeKind.Double);}
+    static {types.put(Types.NVARCHAR, EdmPrimitiveTypeKind.String);}
+    // static {types.put(Types.OTHER, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.REAL, EdmPrimitiveTypeKind.Double);}
+    // static {types.put(Types.REF, EdmPrimitiveTypeKind.);}
+    // static {types.put(Types.REF_CURSOR, EdmPrimitiveTypeKind.);}
+    // static {types.put(Types.ROWID, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.SMALLINT, EdmPrimitiveTypeKind.Int16);}
+    static {types.put(Types.SQLXML, EdmPrimitiveTypeKind.String);}
+    // static {types.put(Types.STRUCT, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.TIME, EdmPrimitiveTypeKind.TimeOfDay);}
+    static {types.put(Types.TIMESTAMP, EdmPrimitiveTypeKind.Date);}
+    static {types.put(Types.TIMESTAMP_WITH_TIMEZONE, EdmPrimitiveTypeKind.DateTimeOffset);}
+    static {types.put(Types.TIME_WITH_TIMEZONE, EdmPrimitiveTypeKind.DateTimeOffset);}
+    static {types.put(Types.TINYINT, EdmPrimitiveTypeKind.SByte);}
+    static {types.put(Types.VARBINARY, EdmPrimitiveTypeKind.Binary);}
+    static {types.put(Types.VARCHAR, EdmPrimitiveTypeKind.String);}
+
     interface Processor {
 	default void process (ResultSet r) throws SQLException {}}
 
@@ -70,7 +129,8 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    super();
 	    this.entityType = entityType;
 	    setName(r.getString("COLUMN_NAME"));
-	    setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());}}
+	    try {setType(types.get(r.getInt("DATA_TYPE")).getFullQualifiedName());}
+	    catch (Exception e) {setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());}}}
 
     static class ProtonEntityContainer extends CsdlEntityContainer implements Processor {
 	CsdlSchema schema;
