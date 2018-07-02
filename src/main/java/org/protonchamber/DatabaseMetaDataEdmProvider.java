@@ -13,7 +13,7 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
     protected DatabaseMetaData m;
 
     interface Processor {
-	void process (ResultSet r) throws SQLException;}
+	default void process (ResultSet r) throws SQLException {}}
 
     static class ProtonRoot implements Processor {
 	Map<String, ProtonSchema> schemas = new HashMap<>();
@@ -56,10 +56,11 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    setName(r.getString("TABLE_NAME"));}
 	public CsdlSchema getSchema () {
 	    return schema;}
-	@Override
-	public void process (ResultSet r) throws SQLException {
-	    if (r.getString("TABLE_SCHEM").equals(getSchema().getNamespace())) if (r.getString("TABLE_NAME").equals(getName())) properties.putIfAbsent(r.getString("COLUMN_NAME"), new ProtonProperty(this, r));
-	    for (Processor p : properties.values()) p.process(r);}
+	// @Override
+	// public void process (ResultSet r) throws SQLException {
+	//     if (r.getString("TABLE_SCHEM").equals(getSchema().getNamespace())) if (r.getString("TABLE_NAME").equals(getName())) properties.putIfAbsent(r.getString("COLUMN_NAME"), new ProtonProperty(this, r));
+	// }
+	    // for (Processor p : properties.values()) p.process(r);}
 	@Override
 	public List<CsdlProperty> getProperties () {
 	    return new ArrayList<>(properties.values());}}
