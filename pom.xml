@@ -35,88 +35,6 @@
           <path>/ProtonChamber</path>
 	</configuration>
       </plugin>
-      <!-- <plugin> -->
-      <!-- 	<groupId>org.apache.maven.plugins</groupId> -->
-      <!-- 	<artifactId>maven-install-plugin</artifactId> -->
-      <!-- 	<version>2.5.2</version> -->
-      <!-- 	<executions> -->
-      <!-- 	  <execution> -->
-      <!-- 	    <phase>initialize</phase> -->
-      <!-- 	    <goals> -->
-      <!-- 	      <goal>install-file</goal> -->
-      <!-- 	    </goals> -->
-      <!-- 	    <configuration> -->
-      <!-- 	      <groupId>org.protonchamber</groupId> -->
-      <!-- 	      <artifactId>apg</artifactId> -->
-      <!-- 	      <version>1.0</version> -->
-      <!-- 	      <packaging>jar</packaging> -->
-      <!-- 	      <file>${basedir}/lib/apg.jar</file> -->
-      <!-- 	    </configuration> -->
-      <!-- 	  </execution> -->
-      <!-- 	</executions> -->
-      <!-- </plugin> -->
-      <!-- <plugin> -->
-      <!-- 	<artifactId>maven-antrun-plugin</artifactId> -->
-      <!-- 	<executions> -->
-      <!-- 	  <execution> -->
-      <!-- 	    <id>generate-sources</id> -->
-      <!-- 	    <phase>generate-sources</phase> -->
-      <!-- 	    <configuration> -->
-      <!--         <tasks> -->
-      <!-- 		<mkdir dir="target/generated-sources/java/"/> -->
-      <!--         </tasks> -->
-      <!-- 	    </configuration> -->
-      <!-- 	    <goals> -->
-      <!--         <goal>run</goal> -->
-      <!-- 	    </goals> -->
-      <!-- 	  </execution> -->
-      <!-- 	</executions> -->
-      <!-- </plugin> -->
-      <!-- <plugin> -->
-      <!-- 	<groupId>org.codehaus.mojo</groupId> -->
-      <!-- 	<artifactId>exec-maven-plugin</artifactId> -->
-      <!-- 	<version>1.6.0</version> -->
-      <!-- 	<executions> -->
-      <!-- 	  <execution> -->
-      <!-- 	    <phase>generate-sources</phase> -->
-      <!-- 	    <goals> -->
-      <!-- 	      <goal>exec</goal> -->
-      <!-- 	    </goals> -->
-      <!-- 	  </execution> -->
-      <!-- 	</executions> -->
-      <!-- 	<configuration> -->
-      <!--     <executable>java</executable> -->
-      <!--     <arguments> -->
-      <!-- 	    <argument>-classpath</argument> -->
-      <!-- 	    <classpath/> -->
-      <!-- 	    <argument>apg.Generator</argument> -->
-      <!--       <argument>/javadoc=Test</argument> -->
-      <!--       <argument>/in=${basedir}/src/main/resources/odata-abnf-construction-rules-ext.txt</argument> -->
-      <!--       <argument>/log=test.log</argument> -->
-      <!--       <argument>/package=org.protonchamber</argument> -->
-      <!--       <argument>/dir=${project.build.directory}/generated-sources/java/</argument> -->
-      <!--     </arguments> -->
-      <!-- 	</configuration> -->
-      <!-- </plugin>       -->
-      <!-- <plugin> -->
-      <!-- 	<groupId>org.codehaus.mojo</groupId> -->
-      <!-- 	<artifactId>build-helper-maven-plugin</artifactId> -->
-      <!-- 	<version>3.0.0</version> -->
-      <!-- 	<executions> -->
-      <!--     <execution> -->
-      <!--       <id>add-source</id> -->
-      <!--       <phase>generate-sources</phase> -->
-      <!--       <goals> -->
-      <!--         <goal>add-source</goal> -->
-      <!--       </goals> -->
-      <!--       <configuration> -->
-      <!--         <sources> -->
-      <!--           <source>${project.build.directory}/generated-sources/java/</source> -->
-      <!--         </sources> -->
-      <!--       </configuration> -->
-      <!--     </execution> -->
-      <!-- 	</executions> -->
-      <!-- </plugin> -->
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
@@ -125,29 +43,15 @@
       	  <target>1.8</target>
         </configuration>
       </plugin>
-      <!-- <plugin> -->
-      <!--   <artifactId>maven-jar-plugin</artifactId> -->
-      <!-- 	<version>2.6</version> -->
-      <!--   <configuration> -->
-      <!--     <archive> -->
-      <!--       <manifest> -->
-      <!--         <addClasspath>true</addClasspath> -->
-      <!-- 	      <mainClass>org.neptunestation.protonchamber.Protonchamber</mainClass> -->
-      <!--       </manifest> -->
-      <!--     </archive> -->
-      <!--   </configuration> -->
-      <!-- </plugin> -->
     </plugins>
   </build>
 
   <dependencies>
-<!-- https://mvnrepository.com/artifact/javax.servlet/servlet-api -->
-<dependency>
-    <groupId>javax.servlet</groupId>
-    <artifactId>servlet-api</artifactId>
-    <version>2.5</version>
-    <!-- <scope>provided</scope> -->
-</dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.olingo</groupId>
       <artifactId>odata-commons-api</artifactId>
@@ -182,10 +86,5 @@
       <version>${olingo.version}</version>
       <scope>runtime</scope>
     </dependency>
-    <!-- <dependency> -->
-    <!--   <groupId>org.protonchamber</groupId> -->
-    <!--   <artifactId>apg</artifactId> -->
-    <!--   <version>1.0</version> -->
-    <!-- </dependency> -->
   </dependencies>
 </project>
