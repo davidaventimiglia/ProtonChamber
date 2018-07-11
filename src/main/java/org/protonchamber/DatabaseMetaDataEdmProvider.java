@@ -138,7 +138,6 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    setPrecision(r.getInt("COLUMN_SIZE"));
 	    setScale(r.getInt("DECIMAL_DIGITS"));}}
 	    
-
     static class ProtonEntityContainer extends CsdlEntityContainer implements Processor {
 	ProtonSchema schema;
 	Map<String, ProtonEntitySet> entitySets = new HashMap<>();
@@ -169,9 +168,29 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	this.m = m;}
 
     @Override
-    public List<CsdlSchema> getSchemas () throws ODataException {
+    public CsdlEntityContainer getEntityContainer () throws ODataException {
+	for (CsdlSchema s : getSchemas()) return s.getEntityContainer();
+	throw new IllegalStateException("No EntityContainer???");}
+
+    @Override
+    public CsdlEntitySet getEntitySet (FullQualifiedName entityContainer, String entitySetName) throws ODataException {
+	return getRoot().schemas.get(entityContainer.getNamespace()).getEntityContainer().getEntitySet(entitySetName);}
+
+    @Override
+    public CsdlEntityContainerInfo getEntityContainerInfo (FullQualifiedName entityContainerName) throws ODataException {
+	for (CsdlSchema s : getSchemas()) {
+	    CsdlEntityContainerInfo info = new CsdlEntityContainerInfo();
+	    info.setContainerName(new FullQualifiedName(s.getNamespace(), s.getEntityContainer().getName()));
+	    return info;}
+	throw new IllegalStateException("No schemas???");}
+
+    ProtonRoot getRoot () throws ODataException {
 	ProtonRoot root = new ProtonRoot();
 	try (ResultSet r = m.getColumns(null, null, null, null)) {
 	    while (r.next()) root.process(r);
-	    return root.getSchemas();}
-	catch (Throwable e) {e.printStackTrace(System.out); throw new ODataException(e);}}}
+	    return root;}
+	catch (Throwable e) {e.printStackTrace(System.out); throw new ODataException(e);}}
+
+    @Override
+    public List<CsdlSchema> getSchemas () throws ODataException {
+	return getRoot().getSchemas();}}
