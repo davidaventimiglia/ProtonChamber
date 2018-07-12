@@ -4,6 +4,7 @@ import java.lang.reflect.*;
 import java.sql.*;
 import java.util.*;
 import javax.naming.*;
+import javax.servlet.*;
 import javax.sql.*;
 import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.provider.*;
@@ -11,6 +12,7 @@ import org.apache.olingo.commons.api.ex.*;
 
 public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
     protected DatabaseMetaData m;
+    protected GenericServlet s;
 
     static Map<Integer, EdmPrimitiveTypeKind> types = new HashMap<>();
 
@@ -130,7 +132,8 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    this.entityType = entityType;
 	    setName(r.getString("COLUMN_NAME"));
 	    setDefaultValue(r.getString("COLUMN_DEF"));
-	    try {setType(types.get(r.getInt("DATA_TYPE")).getFullQualifiedName());}
+	    // try {setType(types.get(r.getInt("DATA_TYPE")).getFullQualifiedName());}
+	    try {setType(types.get(Types.VARCHAR).getFullQualifiedName());}
 	    catch (Exception e) {setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());}
 	    if (getType().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())) setMaxLength(r.getInt("COLUMN_SIZE"));
 	    if (r.getInt("NULLABLE")==0) setNullable(false);
@@ -163,26 +166,40 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    setName(r.getString("TABLE_NAME"));
 	    setType(new FullQualifiedName(r.getString("TABLE_SCHEM"), r.getString("TABLE_NAME")));}}
     
-    public DatabaseMetaDataEdmProvider (DatabaseMetaData m) {
+    public DatabaseMetaDataEdmProvider (GenericServlet servlet, DatabaseMetaData m) {
 	super();
-	this.m = m;}
+	this.m = m;
+	this.s = servlet;}
+
+    void log (String msg) {
+	s.log(msg);}
+
+    void log (String msg, Throwable t) {
+	s.log(msg, t);}
+
+    @Override
+    public CsdlEntityType getEntityType (FullQualifiedName entityTypeName) throws ODataException {
+	return getRoot().schemas.get(entityTypeName.getNamespace()).entityTypes.get(entityTypeName.getName());}
 
     @Override
     public CsdlEntityContainer getEntityContainer () throws ODataException {
+	log("OK, I'm returning an entityContainer.  But, to whom???");
 	for (CsdlSchema s : getSchemas()) return s.getEntityContainer();
+	log("No EntityContainer???");
 	throw new IllegalStateException("No EntityContainer???");}
 
     @Override
     public CsdlEntitySet getEntitySet (FullQualifiedName entityContainer, String entitySetName) throws ODataException {
+	log(String.format("Returning an entitySet:  %s, %s", entityContainer + "", entitySetName));
+	log("Stacktrace:", new Exception());
 	return getRoot().schemas.get(entityContainer.getNamespace()).getEntityContainer().getEntitySet(entitySetName);}
 
     @Override
     public CsdlEntityContainerInfo getEntityContainerInfo (FullQualifiedName entityContainerName) throws ODataException {
-	for (CsdlSchema s : getSchemas()) {
-	    CsdlEntityContainerInfo info = new CsdlEntityContainerInfo();
-	    info.setContainerName(new FullQualifiedName(s.getNamespace(), s.getEntityContainer().getName()));
-	    return info;}
-	throw new IllegalStateException("No schemas???");}
+	CsdlEntityContainerInfo info = new CsdlEntityContainerInfo();
+	log(String.format("entityContainerName: %s", entityContainerName));
+	info.setContainerName(new FullQualifiedName("public", "EntityContainer"));
+	return info;}
 
     ProtonRoot getRoot () throws ODataException {
 	ProtonRoot root = new ProtonRoot();
