@@ -74,17 +74,5 @@
       <version>${olingo.version}</version>
       <scope>runtime</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.olingo</groupId>
-      <artifactId>odata-server-api</artifactId>
-      <version>${olingo.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.olingo</groupId>
-      <artifactId>odata-server-core</artifactId>
-      <version>${olingo.version}</version>
-      <scope>runtime</scope>
-    </dependency>
   </dependencies>
 </project>
