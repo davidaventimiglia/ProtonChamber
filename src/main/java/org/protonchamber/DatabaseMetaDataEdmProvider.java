@@ -137,7 +137,6 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    if (r.getInt("NULLABLE")==1) setNullable(true);
 	    setPrecision(r.getInt("COLUMN_SIZE"));
 	    setScale(r.getInt("DECIMAL_DIGITS"));}}
-	    
 
     static class ProtonEntityContainer extends CsdlEntityContainer implements Processor {
 	ProtonSchema schema;
