@@ -74,7 +74,8 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
     static {types.put(Types.VARCHAR, EdmPrimitiveTypeKind.String);}
 
     interface Processor {
-	default void process (ResultSet r) throws SQLException {}}
+	default void process (ResultSet r) throws SQLException {}
+	default void process (ResultSet r, boolean b) throws SQLException {}}
 
     static class ProtonRoot implements Processor {
 	Map<String, ProtonSchema> schemas = new HashMap<>();
@@ -83,6 +84,9 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	public void process (ResultSet r) throws SQLException {
 	    schemas.putIfAbsent(r.getString("TABLE_SCHEM"), new ProtonSchema(this, r));
 	    for (Processor p : schemas.values()) p.process(r);}
+	@Override
+	public void process (ResultSet r, boolean b) throws SQLException {
+	    for (Processor p : schemas.values()) p.process(r, true);}
 	public List<CsdlSchema> getSchemas () {
 	    return new ArrayList<>(schemas.values());}}
 
@@ -101,6 +105,10 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    for (Processor p : entityTypes.values()) p.process(r);
 	    for (Processor p : entityContainers.values()) p.process(r);}
 	@Override
+	public void process (ResultSet r, boolean b) throws SQLException {
+	    if (r.getString("TABLE_SCHEM").equals(getNamespace()))
+	     for (Processor p : entityTypes.values()) p.process(r, true);}
+	@Override
 	public List<CsdlEntityType> getEntityTypes () {
 	    return new ArrayList<>(entityTypes.values());}
 	@Override
@@ -108,12 +116,18 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    for (CsdlEntityContainer e : entityContainers.values()) return e;
 	    throw new IllegalStateException();}}
 
+    static class ProtonPropertyRef extends CsdlPropertyRef {
+	public ProtonPropertyRef (String alias, String name) {
+	    setAlias(alias);
+	    setName(name);}}
+
     static class ProtonEntityType extends CsdlEntityType implements Processor {
 	ProtonSchema schema;
 	Map<String, ProtonProperty> properties = new HashMap<>();
 	public ProtonEntityType (ProtonSchema schema, ResultSet r) throws SQLException {
 	    super();
 	    this.schema = schema;
+	    setKey(new ArrayList<CsdlPropertyRef>());
 	    setName(r.getString("TABLE_NAME"));}
 	public ProtonSchema getSchema () {
 	    return schema;}
@@ -121,6 +135,11 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	public void process (ResultSet r) throws SQLException {
 	    if (r.getString("TABLE_SCHEM").equals(getSchema().getNamespace())) if (r.getString("TABLE_NAME").equals(getName())) properties.putIfAbsent(r.getString("COLUMN_NAME"), new ProtonProperty(this, r));
 	    for (Processor p : properties.values()) p.process(r);}
+	@Override
+	public void process (ResultSet r, boolean b) throws SQLException {
+	    if (r.getString("TABLE_NAME").equals(getName()))
+		getKey().add(new ProtonPropertyRef(r.getString("COLUMN_NAME"), r.getString("COLUMN_NAME")));
+	    for (Processor p : properties.values()) p.process(r, true);}
 	@Override
 	public List<CsdlProperty> getProperties () {
 	    return new ArrayList<>(properties.values());}}
@@ -203,8 +222,10 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 
     ProtonRoot getRoot () throws ODataException {
 	ProtonRoot root = new ProtonRoot();
-	try (ResultSet r = m.getColumns(null, null, null, null)) {
+	try (ResultSet r = m.getColumns(null, null, null, null);
+	     ResultSet p = m.getPrimaryKeys(null, null, null)) {
 	    while (r.next()) root.process(r);
+	    while (p.next()) root.process(p, true);
 	    return root;}
 	catch (Throwable e) {e.printStackTrace(System.out); throw new ODataException(e);}}
 

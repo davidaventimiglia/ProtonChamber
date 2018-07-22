@@ -13,13 +13,13 @@ import org.apache.olingo.server.api.processor.*;
 import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
 
-public class ProtonEntityCollectionProcessor implements EntityCollectionProcessor {
+public class ProtonEntityProcessor implements EntityProcessor {
     OData odata;
     ServiceMetadata serviceMetaData;
     Connection conn;
     GenericServlet servlet;
 
-    public ProtonEntityCollectionProcessor (Connection conn, GenericServlet servlet) {
+    public ProtonEntityProcessor (Connection conn, GenericServlet servlet) {
 	this.conn = conn;
 	this.servlet = servlet;}
 
@@ -29,18 +29,36 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	this.serviceMetaData = serviceMetaData;}
 
     @Override
-    public void readEntityCollection (ODataRequest request,
-				      ODataResponse response,
-				      UriInfo uriInfo,
-				      ContentType responseFormat)
+    public void createEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) {
+	throw new UnsupportedOperationException();}
+
+    @Override
+    public void deleteEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo) {
+	throw new UnsupportedOperationException();}
+
+    @Override
+    public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) {
+	throw new UnsupportedOperationException();}
+
+    @Override
+    public void readEntity (ODataRequest request,
+			    ODataResponse response,
+			    UriInfo uriInfo,
+			    ContentType responseFormat)
 	throws ODataApplicationException,
 	       ODataLibraryException {
 	List<UriResource> parts = uriInfo.getUriResourceParts();
 	UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet)parts.get(0);
 	EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
-	servlet.log("What the fuck is going on????");
+	List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
+	List<String> sqlPredicates = new ArrayList<>();
+	for (UriParameter p : keyPredicates) {
+	    String s = String.format("%s=%s", p.getName(), p.getText());
+	    sqlPredicates.add(s);}
+	String whereClause = String.join("and", sqlPredicates);
+	String query = String.format("select * from %s where true and %s", edmEntitySet.getName(), whereClause);
 	try (Statement s = conn.createStatement();
-	     ResultSet r = s.executeQuery(String.format("select * from %s", edmEntitySet.getName()))) {
+	     ResultSet r = s.executeQuery(query)) {
 	    EntityCollection c = new EntityCollection();
 	    List<Entity> entityList = c.getEntities();
 	    List<String> propertyNames = edmEntitySet.getEntityType().getPropertyNames();
@@ -60,5 +78,4 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());}
 	catch (Exception e) {
 	    servlet.log(e.getMessage(), e);
-	    throw new ODataApplicationException(e.getMessage(), 500, Locale.US);}}}
-
+	    throw new ODataApplicationException(String.format("message: %s, query: %s", e.getMessage(), query), 500, Locale.US);}}}
