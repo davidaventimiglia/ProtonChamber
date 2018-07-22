@@ -17,3 +17,8 @@ GET http://192.168.151.41:8080/ProtonChamber/ProtonService.svc/document_sub_type
 # get apple skus in json
 GET http://192.168.151.41:8080/ProtonChamber/ProtonService.svc/applestore_skus?$format=json
 
+# get metadata
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
+
+# get the person data
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
