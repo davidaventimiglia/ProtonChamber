@@ -6,6 +6,7 @@ import java.util.*;
 import javax.servlet.*;
 import org.apache.olingo.commons.api.data.*;
 import org.apache.olingo.commons.api.edm.*;
+import org.apache.olingo.commons.api.edm.constants.*;
 import org.apache.olingo.commons.api.format.*;
 import org.apache.olingo.commons.api.http.*;
 import org.apache.olingo.server.api.*;
@@ -46,7 +47,22 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	    List<String> propertyNames = edmEntitySet.getEntityType().getPropertyNames();
 	    while (r.next()) {
 		Entity e = new Entity();
-		for (String p : propertyNames) e.addProperty(new Property(null, p, ValueType.PRIMITIVE, r.getString(p)));
+		for (String p : propertyNames) e.addProperty(new Property(null, p, ValueType.PRIMITIVE,
+									  edmEntitySet
+									  .getEntityType()
+									  .getProperty(p)
+									  .getType()
+									  .getKind()==EdmTypeKind.PRIMITIVE ?
+									  ((EdmPrimitiveType)
+									   (edmEntitySet
+									    .getEntityType()
+									    .getProperty(p)
+									    .getType()))
+									  .getDefaultType()
+									  .isAssignableFrom(Integer.class) ?
+									  r.getInt(p) :
+									  r.getString(p) :
+									  r.getString(p)));
 		entityList.add(e);}
 	    ODataSerializer serializer = odata.createSerializer(responseFormat);
 	    EdmEntityType edmEntityType = edmEntitySet.getEntityType();
