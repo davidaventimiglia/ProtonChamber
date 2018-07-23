@@ -48,7 +48,6 @@ public class ProtonEntityProcessor implements EntityProcessor {
 	ODataDeserializer deserializer = odata.createDeserializer(requestFormat);
 	DeserializerResult result = deserializer.entity(requestInputStream, edmEntityType);
 	Entity requestEntity = result.getEntity();
-
 	List<String> names = new ArrayList<>();
 	List<String> values = new ArrayList<>();
 	for (Property p : requestEntity.getProperties()) {names.add(p.getName()); values.add(""+p.getValue());}
@@ -115,11 +114,8 @@ public class ProtonEntityProcessor implements EntityProcessor {
 	EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 	List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
 	List<String> sqlPredicates = new ArrayList<>();
-	for (UriParameter p : keyPredicates) {
-	    String s = String.format("%s=%s", p.getName(), p.getText());
-	    sqlPredicates.add(s);}
-	String whereClause = String.join("and", sqlPredicates);
-	String query = String.format("select * from %s where true and %s", edmEntitySet.getName(), whereClause);
+	for (UriParameter p : keyPredicates) sqlPredicates.add(String.format("%s=%s", p.getName(), p.getText()));
+	String query = String.format("select * from %s where true and %s", edmEntitySet.getName(), String.join("and", sqlPredicates));
 	try (Statement s = conn.createStatement();
 	     ResultSet r = s.executeQuery(query)) {
 	    EntityCollection c = new EntityCollection();

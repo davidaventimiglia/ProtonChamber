@@ -151,9 +151,7 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    this.entityType = entityType;
 	    setName(r.getString("COLUMN_NAME"));
 	    setDefaultValue(r.getString("COLUMN_DEF"));
-	    try {setType(types.get(r.getInt("DATA_TYPE")).getFullQualifiedName());}
-	    // try {setType(types.get(Types.VARCHAR).getFullQualifiedName());}
-	    catch (Exception e) {setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());}
+	    try {setType(types.get(r.getInt("DATA_TYPE")).getFullQualifiedName());} catch (Exception e) {setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());}
 	    if (getType().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())) setMaxLength(r.getInt("COLUMN_SIZE"));
 	    if (r.getInt("NULLABLE")==0) setNullable(false);
 	    if (r.getInt("NULLABLE")==1) setNullable(true);
