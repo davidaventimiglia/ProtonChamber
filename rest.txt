@@ -25,3 +25,13 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
 
 # get an individual person
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(1)
+
+# insert a person
+POST http://localhost:8080/ProtonChamber/ProtonService.svc/person
+Content-Type: application/json
+
+{
+  "last_name": "'Kwok'",
+  "first_name": "'Patty'",
+  "age": 39
+}
