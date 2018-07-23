@@ -32,8 +32,7 @@ public class ProtonEntityProcessor implements EntityProcessor {
 
     static class AutoCloseableWrapper<T> implements AutoCloseable {
 	T wrapped;
-	public AutoCloseableWrapper (T wrapped) {
-	    this.wrapped = wrapped;}
+	public AutoCloseableWrapper (T wrapped) {this.wrapped = wrapped;}
 	@Override
 	public void close () {}
 	public T getWrapped () {return wrapped;}}
