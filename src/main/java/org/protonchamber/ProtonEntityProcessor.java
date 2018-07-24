@@ -52,8 +52,9 @@ public class ProtonEntityProcessor implements EntityProcessor {
 	for (Property p : requestEntity.getProperties()) {names.add(p.getName()); values.add(""+p.getValue());}
 	String insert = String.format("insert into %s (%s) values (%s)", edmEntitySet.getName(), String.join(",", names), String.join(",", values));
 	servlet.log(String.format("insert: %s", insert));
+	servlet.log(String.format("names: %s", edmEntityType.getPropertyNames()));
 	try (Statement s = conn.createStatement();
-	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(insert, names.toArray(new String[0])));
+	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(insert, edmEntityType.getPropertyNames().toArray(new String[0])));
 	     ResultSet r = s.getGeneratedKeys()) {
 	    ResultSetMetaData m = r.getMetaData();
 	    Set<String> columnNames = new HashSet<>();
@@ -98,27 +99,6 @@ public class ProtonEntityProcessor implements EntityProcessor {
 								   r.getInt(m.getColumnName(i)) :
 								   r.getString(m.getColumnName(i)) :
 								   r.getString(m.getColumnName(i)));
-		// e
-		//     .getProperty("id")
-		//     .setValue(ValueType.PRIMITIVE, 100);
-		// for (String p : propertyNames)
-		//     if (columnNames.contains(p))
-		// 	e.addProperty(new Property(null, p, ValueType.PRIMITIVE,
-		// 				   edmEntitySet
-		// 				   .getEntityType()
-		// 				   .getProperty(p)
-		// 				   .getType()
-		// 				   .getKind()==EdmTypeKind.PRIMITIVE ?
-		// 				   ((EdmPrimitiveType)
-		// 				    (edmEntitySet
-		// 				     .getEntityType()
-		// 				     .getProperty(p)
-		// 				     .getType()))
-		// 				   .getDefaultType()
-		// 				   .isAssignableFrom(Integer.class) ?
-		// 				   r.getInt(p) :
-		// 				   r.getString(p) :
-		// 				   r.getString(p)));
 		entityList.add(e);
 		ContextURL contextUrl = ContextURL.with().entitySet(edmEntitySet).build();
 		EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).build();
