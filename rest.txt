@@ -35,3 +35,13 @@ Content-Type: application/json
   "first_name": "'Alan'",
   "age": 39
 }
+
+# update a person
+PUT http://localhost:8080/ProtonChamber/ProtonService.svc/person(9)
+Content-Type: application/json
+
+{
+  "last_name": "'Kwok'",
+  "first_name": "'Patty'",
+  "age": 39
+}
