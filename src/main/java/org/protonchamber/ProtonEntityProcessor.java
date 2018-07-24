@@ -51,35 +51,74 @@ public class ProtonEntityProcessor implements EntityProcessor {
 	List<String> values = new ArrayList<>();
 	for (Property p : requestEntity.getProperties()) {names.add(p.getName()); values.add(""+p.getValue());}
 	String insert = String.format("insert into %s (%s) values (%s)", edmEntitySet.getName(), String.join(",", names), String.join(",", values));
+	servlet.log(String.format("insert: %s", insert));
 	try (Statement s = conn.createStatement();
 	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(insert, names.toArray(new String[0])));
 	     ResultSet r = s.getGeneratedKeys()) {
 	    ResultSetMetaData m = r.getMetaData();
 	    Set<String> columnNames = new HashSet<>();
 	    for (int i=1; i<=m.getColumnCount(); i++) columnNames.add(m.getColumnName(i));
+	    servlet.log(String.format("columnNames: %s", columnNames));
 	    EntityCollection c = new EntityCollection();
 	    List<Entity> entityList = c.getEntities();
 	    List<String> propertyNames = edmEntitySet.getEntityType().getPropertyNames();
 	    while (r.next()) {
 		Entity e = requestEntity;
-		for (String p : propertyNames)
-		    if (columnNames.contains(p))
-			e.addProperty(new Property(null, p, ValueType.PRIMITIVE,
+		for (int i=1; i<=m.getColumnCount(); i++)
+		    if (e.getProperty(m.getColumnName(i))==null)
+			e.addProperty(new Property(null, m.getColumnName(i), ValueType.PRIMITIVE,
 						   edmEntitySet
 						   .getEntityType()
-						   .getProperty(p)
+						   .getProperty(m.getColumnName(i))
 						   .getType()
 						   .getKind()==EdmTypeKind.PRIMITIVE ?
 						   ((EdmPrimitiveType)
 						    (edmEntitySet
 						     .getEntityType()
-						     .getProperty(p)
+						     .getProperty(m.getColumnName(i))
 						     .getType()))
 						   .getDefaultType()
 						   .isAssignableFrom(Integer.class) ?
-						   r.getInt(p) :
-						   r.getString(p) :
-						   r.getString(p)));
+						   r.getInt(m.getColumnName(i)) :
+						   r.getString(m.getColumnName(i)) :
+						   r.getString(m.getColumnName(i)))); else
+			e.getProperty(m.getColumnName(i)).setValue(ValueType.PRIMITIVE,
+								   edmEntitySet
+								   .getEntityType()
+								   .getProperty(m.getColumnName(i))
+								   .getType()
+								   .getKind()==EdmTypeKind.PRIMITIVE ?
+								   ((EdmPrimitiveType)
+								    (edmEntitySet
+								     .getEntityType()
+								     .getProperty(m.getColumnName(i))
+								     .getType()))
+								   .getDefaultType()
+								   .isAssignableFrom(Integer.class) ?
+								   r.getInt(m.getColumnName(i)) :
+								   r.getString(m.getColumnName(i)) :
+								   r.getString(m.getColumnName(i)));
+		// e
+		//     .getProperty("id")
+		//     .setValue(ValueType.PRIMITIVE, 100);
+		// for (String p : propertyNames)
+		//     if (columnNames.contains(p))
+		// 	e.addProperty(new Property(null, p, ValueType.PRIMITIVE,
+		// 				   edmEntitySet
+		// 				   .getEntityType()
+		// 				   .getProperty(p)
+		// 				   .getType()
+		// 				   .getKind()==EdmTypeKind.PRIMITIVE ?
+		// 				   ((EdmPrimitiveType)
+		// 				    (edmEntitySet
+		// 				     .getEntityType()
+		// 				     .getProperty(p)
+		// 				     .getType()))
+		// 				   .getDefaultType()
+		// 				   .isAssignableFrom(Integer.class) ?
+		// 				   r.getInt(p) :
+		// 				   r.getString(p) :
+		// 				   r.getString(p)));
 		entityList.add(e);
 		ContextURL contextUrl = ContextURL.with().entitySet(edmEntitySet).build();
 		EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).build();

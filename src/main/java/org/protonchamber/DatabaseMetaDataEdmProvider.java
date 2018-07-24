@@ -156,6 +156,7 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    if (r.getInt("NULLABLE")==0) setNullable(false);
 	    if (r.getInt("NULLABLE")==1) setNullable(true);
 	    setPrecision(r.getInt("COLUMN_SIZE"));
+	    setNullable(true);
 	    setScale(r.getInt("DECIMAL_DIGITS"));}}
 
     static class ProtonEntityContainer extends CsdlEntityContainer implements Processor {
@@ -208,7 +209,7 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
     @Override
     public CsdlEntitySet getEntitySet (FullQualifiedName entityContainer, String entitySetName) throws ODataException {
 	log(String.format("Returning an entitySet:  %s, %s", entityContainer + "", entitySetName));
-	log("Stacktrace:", new Exception());
+	// log("Stacktrace:", new Exception());
 	return getRoot().schemas.get(entityContainer.getNamespace()).getEntityContainer().getEntitySet(entitySetName);}
 
     @Override

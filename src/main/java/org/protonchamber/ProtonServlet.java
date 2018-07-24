@@ -29,4 +29,3 @@ public class ProtonServlet extends HttpServlet {
 	catch (Exception e) {
 	    log(e.getMessage());
 	    throw new ServletException(e);}}}
-
