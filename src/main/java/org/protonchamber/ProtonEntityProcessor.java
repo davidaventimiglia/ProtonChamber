@@ -113,8 +113,24 @@ public class ProtonEntityProcessor implements EntityProcessor {
 	    throw new ODataApplicationException(String.format("message: %s, query: %s", e.getMessage(), insert), 500, Locale.US);}}
 
     @Override
-    public void deleteEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo) {
-	throw new UnsupportedOperationException();}
+    public void deleteEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo)
+	throws ODataApplicationException {
+	List<UriResource> parts = uriInfo.getUriResourceParts();
+	UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet)parts.get(0);
+	HttpMethod httpMethod = request.getMethod();
+	EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
+	EdmEntityType edmEntityType = edmEntitySet.getEntityType();
+	InputStream requestInputStream = request.getBody();
+	List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
+	List<String> sqlPredicates = new ArrayList<>();
+	for (UriParameter p : keyPredicates) sqlPredicates.add(String.format("%s=%s", p.getName(), String.format("'%s'", p.getText())));
+	String delete = String.format("delete from %s where true and %s", edmEntitySet.getName(), String.join("and", sqlPredicates));
+	try (Statement s = conn.createStatement();
+	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(delete))) {
+	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());}
+	catch (Exception e) {
+	    servlet.log(e.getMessage(), e);
+	    throw new ODataApplicationException(String.format("message: %s, query: %s", e.getMessage(), delete), 500, Locale.US);}}
 
     @Override
     public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException {

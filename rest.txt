@@ -45,3 +45,6 @@ Content-Type: application/json
   "first_name": "'Patty'",
   "age": 39
 }
+
+# delete a person
+DELETE http://localhost:8080/ProtonChamber/ProtonService.svc/person(9)
