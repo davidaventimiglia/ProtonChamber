@@ -1,6 +1,7 @@
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This README would normally document whatever steps are necessary to
+get your application up and running.
 
 ### What is this repository for? ###
 
@@ -21,9 +22,7 @@ This README would normally document whatever steps are necessary to get your app
 
     wget http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/abnf/odata-abnf-construction-rules.txt
 
-* Install APJ
-
-    mvn install:install-file -Dfile=lib/apg.jar -DgroupId=org.protonchamber -DartifactId=apg -Dversion=1.0 -Dpackaging=jar
+    mvn install
 
 ### Contribution guidelines ###
 
@@ -35,3 +34,17 @@ This README would normally document whatever steps are necessary to get your app
 
 * Repo owner or admin
 * Other community or team contact
+
+### TODO ###
+
+- [ ] Rename `DatabaseMetaDataEdmProvider` to
+      `ProtonMetaDataEdmProvider` or something.
+- [ ] Rename all `Proton` parts of names to `ProtonChamber`.
+- [ ] In `ProtonServlet` move setup code (like `Handler` registration)
+      to the `init` method.
+- [ ] Add proper and robust exception and error handling.
+- [ ] Inject JNDI name of `DataSource` (i.e., "jdbc/ProtonDB") via
+      `ServletConfig`.
+- [ ] In `DatabaseMetaDataEdmProvider` audit and clean up data flow
+      from JDBC `ResultSet` objects to Olingo objects.
+
