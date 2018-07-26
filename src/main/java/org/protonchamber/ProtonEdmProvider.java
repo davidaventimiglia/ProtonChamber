@@ -10,9 +10,9 @@ import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.provider.*;
 import org.apache.olingo.commons.api.ex.*;
 
-public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
-    protected DatabaseMetaData m;
-    protected GenericServlet s;
+public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
+    DataSource ds;
+    GenericServlet s;
 
     static Map<Integer, EdmPrimitiveTypeKind> types = new HashMap<>();
 
@@ -76,6 +76,13 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
     interface Processor {
 	default void process (ResultSet r) throws SQLException {}
 	default void process (ResultSet r, boolean b) throws SQLException {}}
+
+    static class AutoCloseableWrapper<T> implements AutoCloseable {
+	T wrapped;
+	public AutoCloseableWrapper (T wrapped) {this.wrapped = wrapped;}
+	@Override
+	public void close () {}
+	public T getWrapped () {return wrapped;}}
 
     static class ProtonRoot implements Processor {
 	Map<String, ProtonSchema> schemas = new HashMap<>();
@@ -184,9 +191,9 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 	    setName(r.getString("TABLE_NAME"));
 	    setType(new FullQualifiedName(r.getString("TABLE_SCHEM"), r.getString("TABLE_NAME")));}}
     
-    public DatabaseMetaDataEdmProvider (GenericServlet servlet, DatabaseMetaData m) {
+    public ProtonEdmProvider (GenericServlet servlet, DataSource ds) {
 	super();
-	this.m = m;
+	this.ds = ds;
 	this.s = servlet;}
 
     void log (String msg) {
@@ -221,7 +228,9 @@ public class DatabaseMetaDataEdmProvider extends CsdlAbstractEdmProvider {
 
     ProtonRoot getRoot () throws ODataException {
 	ProtonRoot root = new ProtonRoot();
-	try (ResultSet r = m.getColumns(null, null, null, null);
+	try (Connection c = ds.getConnection();
+	     AutoCloseableWrapper<DatabaseMetaData> m = new AutoCloseableWrapper<>(c.getMetaData());
+	     ResultSet r = m.getColumns(null, null, null, null);
 	     ResultSet p = m.getPrimaryKeys(null, null, null)) {
 	    while (r.next()) root.process(r);
 	    while (p.next()) root.process(p, true);

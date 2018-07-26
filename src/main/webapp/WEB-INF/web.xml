@@ -9,6 +9,10 @@
     <servlet-name>ProtonServlet</servlet-name>
     <servlet-class>org.protonchamber.ProtonServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
+    <init-param>
+      <param-name>dsname</param-name>
+      <param-value>jdbc/ProtonDB</param-value>
+    </init-param>
   </servlet>
 
   <servlet-mapping>

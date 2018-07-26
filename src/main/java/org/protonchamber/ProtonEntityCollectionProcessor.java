@@ -4,6 +4,7 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 import javax.servlet.*;
+import javax.sql.*;
 import org.apache.olingo.commons.api.data.*;
 import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.constants.*;
@@ -17,11 +18,11 @@ import org.apache.olingo.server.api.uri.*;
 public class ProtonEntityCollectionProcessor implements EntityCollectionProcessor {
     OData odata;
     ServiceMetadata serviceMetaData;
-    Connection conn;
+    DataSource ds;
     GenericServlet servlet;
 
-    public ProtonEntityCollectionProcessor (Connection conn, GenericServlet servlet) {
-	this.conn = conn;
+    public ProtonEntityCollectionProcessor (DataSource ds, GenericServlet servlet) {
+	this.ds = ds;
 	this.servlet = servlet;}
 
     @Override
@@ -40,7 +41,8 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet)parts.get(0);
 	EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 	servlet.log("What the fuck is going on????");
-	try (Statement s = conn.createStatement();
+	try (Connection c = ds.getConnection();
+	     Statement s = c.createStatement();
 	     ResultSet r = s.executeQuery(String.format("select * from %s", edmEntitySet.getName()))) {
 	    EntityCollection c = new EntityCollection();
 	    List<Entity> entityList = c.getEntities();
