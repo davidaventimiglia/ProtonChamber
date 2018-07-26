@@ -95,7 +95,7 @@ public class ProtonEntityProcessor implements EntityProcessor {
 									   r.getString(m.getColumnName(i)) :
 									   r.getString(m.getColumnName(i)));
 			entityList.add(e);
-			response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, edmEntityType, ec, EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(edmEntitySet).build()).build()).getContent());
+			response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, edmEntityType, e, EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(edmEntitySet).build()).build()).getContent());
 			response.setStatusCode(HttpStatusCode.CREATED.getStatusCode());
 			response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 			return;}}

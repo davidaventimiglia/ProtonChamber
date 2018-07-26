@@ -77,6 +77,21 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	default void process (ResultSet r) throws SQLException {}
 	default void process (ResultSet r, boolean b) throws SQLException {}}
 
+    interface AutoCloseableDatabaseMetaData extends AutoCloseable, DatabaseMetaData {}
+
+    AutoCloseableDatabaseMetaData closeable (final DatabaseMetaData m) {
+	return
+	    (AutoCloseableDatabaseMetaData)
+	    Proxy
+	    .newProxyInstance(AutoCloseableDatabaseMetaData
+			      .class
+			      .getClassLoader(),
+			      new Class[]{AutoCloseableDatabaseMetaData.class},
+			      new InvocationHandler () {
+				  @Override public Object invoke (Object proxy, Method method, Object[] args) throws Throwable {
+				      if ("close".equals(method.getName())) return null;
+				      return method.invoke(m, args);}});}
+
     static class AutoCloseableWrapper<T> implements AutoCloseable {
 	T wrapped;
 	public AutoCloseableWrapper (T wrapped) {this.wrapped = wrapped;}
@@ -229,7 +244,7 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
     ProtonRoot getRoot () throws ODataException {
 	ProtonRoot root = new ProtonRoot();
 	try (Connection c = ds.getConnection();
-	     AutoCloseableWrapper<DatabaseMetaData> m = new AutoCloseableWrapper<>(c.getMetaData());
+	     AutoCloseableDatabaseMetaData m = closeable(c.getMetaData());
 	     ResultSet r = m.getColumns(null, null, null, null);
 	     ResultSet p = m.getPrimaryKeys(null, null, null)) {
 	    while (r.next()) root.process(r);

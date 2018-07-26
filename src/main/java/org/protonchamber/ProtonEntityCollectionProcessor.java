@@ -44,8 +44,8 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     ResultSet r = s.executeQuery(String.format("select * from %s", edmEntitySet.getName()))) {
-	    EntityCollection c = new EntityCollection();
-	    List<Entity> entityList = c.getEntities();
+	    EntityCollection ec = new EntityCollection();
+	    List<Entity> entityList = ec.getEntities();
 	    List<String> propertyNames = edmEntitySet.getEntityType().getPropertyNames();
 	    while (r.next()) {
 		Entity e = new Entity();
@@ -71,7 +71,7 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	    ContextURL contextUrl = ContextURL.with().entitySet(edmEntitySet).build();
 	    final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
 	    EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with().id(id).contextURL(contextUrl).build();
-	    SerializerResult serializerResult = serializer.entityCollection(serviceMetaData, edmEntityType, c, opts);
+	    SerializerResult serializerResult = serializer.entityCollection(serviceMetaData, edmEntityType, ec, opts);
 	    InputStream serializedContent = serializerResult.getContent();
 	    response.setContent(serializedContent);
 	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
