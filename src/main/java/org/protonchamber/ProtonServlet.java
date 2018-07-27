@@ -29,7 +29,6 @@ public class ProtonServlet extends HttpServlet {
     public void init (ServletConfig config) throws ServletException {
 	try {
 	    ds = (DataSource)((Context)(new InitialContext()) .lookup("java:comp/env")).lookup(config.getInitParameter("dsname"));
-	    odata = OData.newInstance();
 	    handler = odata.createHandler(odata.createServiceMetadata(new ProtonEdmProvider(this, ds), new ArrayList<EdmxReference>()));
 	    handler.register(new ProtonEntityCollectionProcessor(ds, this));
 	    handler.register(new ProtonEntityProcessor(ds, this));
