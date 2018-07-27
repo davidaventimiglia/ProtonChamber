@@ -31,52 +31,32 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	this.serviceMetaData = serviceMetaData;}
 
     @Override
-    public void readEntityCollection (ODataRequest request,
-				      ODataResponse response,
-				      UriInfo uriInfo,
-				      ContentType responseFormat)
-	throws ODataApplicationException,
-	       ODataLibraryException {
-	List<UriResource> parts = uriInfo.getUriResourceParts();
-	UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet)parts.get(0);
-	EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
-	servlet.log("What the fuck is going on????");
-	try (Connection c = ds.getConnection();
-	     Statement s = c.createStatement();
-	     ResultSet r = s.executeQuery(String.format("select * from %s", edmEntitySet.getName()))) {
-	    EntityCollection ec = new EntityCollection();
-	    List<Entity> entityList = ec.getEntities();
-	    List<String> propertyNames = edmEntitySet.getEntityType().getPropertyNames();
-	    while (r.next()) {
+    public void readEntityCollection (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+	for (UriResource part : uriInfo.getUriResourceParts())
+	    if (part.getKind()==UriResourceKind.entitySet) {
+		UriResourceEntitySet es = (UriResourceEntitySet)part;
 		Entity e = new Entity();
-		for (String p : propertyNames) e.addProperty(new Property(null, p, ValueType.PRIMITIVE,
-									  edmEntitySet
-									  .getEntityType()
-									  .getProperty(p)
-									  .getType()
-									  .getKind()==EdmTypeKind.PRIMITIVE ?
-									  ((EdmPrimitiveType)
-									   (edmEntitySet
-									    .getEntityType()
-									    .getProperty(p)
-									    .getType()))
-									  .getDefaultType()
-									  .isAssignableFrom(Integer.class) ?
-									  r.getInt(p) :
-									  r.getString(p) :
-									  r.getString(p)));
-		entityList.add(e);}
-	    ODataSerializer serializer = odata.createSerializer(responseFormat);
-	    EdmEntityType edmEntityType = edmEntitySet.getEntityType();
-	    ContextURL contextUrl = ContextURL.with().entitySet(edmEntitySet).build();
-	    final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
-	    EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with().id(id).contextURL(contextUrl).build();
-	    SerializerResult serializerResult = serializer.entityCollection(serviceMetaData, edmEntityType, ec, opts);
-	    InputStream serializedContent = serializerResult.getContent();
-	    response.setContent(serializedContent);
-	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());}
-	catch (Exception e) {
-	    servlet.log(e.getMessage(), e);
-	    throw new ODataApplicationException(e.getMessage(), 500, Locale.US);}}}
-
+		Map<String, String> pairs = new HashMap<>();
+		for (Property p : e.getProperties()) pairs.put(p.getName(), ""+p.getValue());
+		List<String> sqlPredicates = new ArrayList<>();
+		for (UriParameter p : es.getKeyPredicates()) sqlPredicates.add(String.format("%s=%s", p.getName(), String.format("'%s'", p.getText())));
+		String select = String.format("select * from %s where true and %s", es.getEntitySet().getName(), String.join("and", sqlPredicates));
+		try (Connection c = ds.getConnection();
+		     Statement s = c.createStatement();
+		     ResultSet r = s.executeQuery(select)) {
+		    EntityCollection ec = new EntityCollection();
+		    while (r.next()) {
+			for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
+			    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
+				if (e.getProperty(r.getMetaData().getColumnName(i))==null)
+				    e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
+				else
+				    e.getProperty(r.getMetaData().getColumnName(i)).setValue(ValueType.PRIMITIVE, r.getObject(i));
+			ec.getEntities().add(e);}
+		    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getEntitySet().getName()).contextURL(ContextURL.with().entitySet(es.getEntitySet()).build()).build()).getContent());
+		    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+		    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+		    return;}
+		catch (Exception ex) {
+		    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), select), 500, Locale.US);}}
+	throw new IllegalStateException("Should never get here");}}
