@@ -11,86 +11,14 @@ import org.apache.olingo.commons.api.edm.provider.*;
 import org.apache.olingo.commons.api.ex.*;
 
 public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
-    DataSource ds;
-    GenericServlet s;
 
-    static Map<Integer, EdmPrimitiveTypeKind> types = new HashMap<>();
-
-    // Binary           byte[], Byte[]
-    // Boolean          Boolean
-    // Byte             Short, Byte, Integer, Long, BigInteger
-    // Date             Calendar, Date, Timestamp, Time, Long
-    // DateTimeOffset   Timestamp, Calendar, Date, Time, Long
-    // Decimal          BigDecimal, BigInteger, Double, Float, Byte, Short, Integer, Long
-    // Double           Double, Float, BigDecimal, Byte, Short, Integer, Long
-    // Duration         BigDecimal, BigInteger, Double, Float, Byte, Short, Integer, Long
-    // Guid             UUID
-    // Int16            Short, Byte, Integer, Long, BigInteger
-    // Int32            Integer, Byte, Short, Long, BigInteger
-    // Int64            Long, Byte, Short, Integer, BigInteger
-    // SByte            Byte, Short, Integer, Long, BigInteger
-    // Single           Float, Double, BigDecimal, Byte, Short, Integer, Long
-    // String           String
-    // TimeOfDay        Calendar, Date, Timestamp, Time, Long
-
-    // static {types.put(Types.ARRAY, EdmPrimitiveTypeKind.);}
-    static {types.put(Types.BIGINT, EdmPrimitiveTypeKind.Int64);}
-    static {types.put(Types.BINARY, EdmPrimitiveTypeKind.Binary);}
-    static {types.put(Types.BIT, EdmPrimitiveTypeKind.Boolean);}
-    static {types.put(Types.BLOB, EdmPrimitiveTypeKind.Binary);}
-    static {types.put(Types.BOOLEAN, EdmPrimitiveTypeKind.Boolean);}
-    static {types.put(Types.CHAR, EdmPrimitiveTypeKind.String);}
-    static {types.put(Types.CLOB, EdmPrimitiveTypeKind.String);}
-    // static {types.put(Types.DATALINK, EdmPrimitiveTypeKind.);}
-    static {types.put(Types.DATE, EdmPrimitiveTypeKind.Date);}
-    static {types.put(Types.DECIMAL, EdmPrimitiveTypeKind.Decimal);}
-    // static {types.put(Types.DISTINCT, EdmPrimitiveTypeKind.);}
-    static {types.put(Types.DOUBLE, EdmPrimitiveTypeKind.Double);}
-    static {types.put(Types.FLOAT, EdmPrimitiveTypeKind.Double);}
-    static {types.put(Types.INTEGER, EdmPrimitiveTypeKind.Int32);}
-    // static {types.put(Types.JAVA_OBJECT, EdmPrimitiveTypeKind.);}
-    static {types.put(Types.LONGNVARCHAR, EdmPrimitiveTypeKind.String);}
-    static {types.put(Types.LONGVARBINARY, EdmPrimitiveTypeKind.Binary);}
-    static {types.put(Types.LONGVARCHAR, EdmPrimitiveTypeKind.String);}
-    static {types.put(Types.NCHAR, EdmPrimitiveTypeKind.String);}
-    static {types.put(Types.NCLOB, EdmPrimitiveTypeKind.String);}
-    // static {types.put(Types.NULL, EdmPrimitiveTypeKind.);}
-    static {types.put(Types.NUMERIC, EdmPrimitiveTypeKind.Double);}
-    static {types.put(Types.NVARCHAR, EdmPrimitiveTypeKind.String);}
-    // static {types.put(Types.OTHER, EdmPrimitiveTypeKind.);}
-    static {types.put(Types.REAL, EdmPrimitiveTypeKind.Double);}
-    // static {types.put(Types.REF, EdmPrimitiveTypeKind.);}
-    // static {types.put(Types.REF_CURSOR, EdmPrimitiveTypeKind.);}
-    // static {types.put(Types.ROWID, EdmPrimitiveTypeKind.);}
-    static {types.put(Types.SMALLINT, EdmPrimitiveTypeKind.Int16);}
-    static {types.put(Types.SQLXML, EdmPrimitiveTypeKind.String);}
-    // static {types.put(Types.STRUCT, EdmPrimitiveTypeKind.);}
-    static {types.put(Types.TIME, EdmPrimitiveTypeKind.TimeOfDay);}
-    static {types.put(Types.TIMESTAMP, EdmPrimitiveTypeKind.Date);}
-    static {types.put(Types.TIMESTAMP_WITH_TIMEZONE, EdmPrimitiveTypeKind.DateTimeOffset);}
-    static {types.put(Types.TIME_WITH_TIMEZONE, EdmPrimitiveTypeKind.DateTimeOffset);}
-    static {types.put(Types.TINYINT, EdmPrimitiveTypeKind.SByte);}
-    static {types.put(Types.VARBINARY, EdmPrimitiveTypeKind.Binary);}
-    static {types.put(Types.VARCHAR, EdmPrimitiveTypeKind.String);}
-
-    interface Processor {
+    // nested types
+    
+    static interface Processor {
 	default void process (ResultSet r) throws SQLException {}
 	default void process (ResultSet r, boolean b) throws SQLException {}}
 
-    interface AutoCloseableDatabaseMetaData extends AutoCloseable, DatabaseMetaData {}
-
-    AutoCloseableDatabaseMetaData closeable (final DatabaseMetaData m) {
-	return
-	    (AutoCloseableDatabaseMetaData)
-	    Proxy
-	    .newProxyInstance(AutoCloseableDatabaseMetaData
-			      .class
-			      .getClassLoader(),
-			      new Class[]{AutoCloseableDatabaseMetaData.class},
-			      new InvocationHandler () {
-				  @Override public Object invoke (Object proxy, Method method, Object[] args) throws Throwable {
-				      if ("close".equals(method.getName())) return null;
-				      return method.invoke(m, args);}});}
+    static interface AutoCloseableDatabaseMetaData extends AutoCloseable, DatabaseMetaData {}
 
     static class AutoCloseableWrapper<T> implements AutoCloseable {
 	T wrapped;
@@ -206,40 +134,88 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    setName(r.getString("TABLE_NAME"));
 	    setType(new FullQualifiedName(r.getString("TABLE_SCHEM"), r.getString("TABLE_NAME")));}}
     
-    public ProtonEdmProvider (GenericServlet servlet, DataSource ds) {
-	super();
-	this.ds = ds;
-	this.s = servlet;}
+    // class data
 
-    void log (String msg) {
-	s.log(msg);}
+    static Map<Integer, EdmPrimitiveTypeKind> types = new HashMap<>();
 
-    void log (String msg, Throwable t) {
-	s.log(msg, t);}
+    // For Reference
+    // =========================================================================
+    // Binary           byte[], Byte[]
+    // Boolean          Boolean
+    // Byte             Short, Byte, Integer, Long, BigInteger
+    // Date             Calendar, Date, Timestamp, Time, Long
+    // DateTimeOffset   Timestamp, Calendar, Date, Time, Long
+    // Decimal          BigDecimal, BigInteger, Double, Float, Byte, Short, Integer, Long
+    // Double           Double, Float, BigDecimal, Byte, Short, Integer, Long
+    // Duration         BigDecimal, BigInteger, Double, Float, Byte, Short, Integer, Long
+    // Guid             UUID
+    // Int16            Short, Byte, Integer, Long, BigInteger
+    // Int32            Integer, Byte, Short, Long, BigInteger
+    // Int64            Long, Byte, Short, Integer, BigInteger
+    // SByte            Byte, Short, Integer, Long, BigInteger
+    // Single           Float, Double, BigDecimal, Byte, Short, Integer, Long
+    // String           String
+    // TimeOfDay        Calendar, Date, Timestamp, Time, Long
 
-    @Override
-    public CsdlEntityType getEntityType (FullQualifiedName entityTypeName) throws ODataException {
-	return getRoot().schemas.get(entityTypeName.getNamespace()).entityTypes.get(entityTypeName.getName());}
+    // static {types.put(Types.ARRAY, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.BIGINT, EdmPrimitiveTypeKind.Int64);}
+    static {types.put(Types.BINARY, EdmPrimitiveTypeKind.Binary);}
+    static {types.put(Types.BIT, EdmPrimitiveTypeKind.Boolean);}
+    static {types.put(Types.BLOB, EdmPrimitiveTypeKind.Binary);}
+    static {types.put(Types.BOOLEAN, EdmPrimitiveTypeKind.Boolean);}
+    static {types.put(Types.CHAR, EdmPrimitiveTypeKind.String);}
+    static {types.put(Types.CLOB, EdmPrimitiveTypeKind.String);}
+    // static {types.put(Types.DATALINK, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.DATE, EdmPrimitiveTypeKind.Date);}
+    static {types.put(Types.DECIMAL, EdmPrimitiveTypeKind.Decimal);}
+    // static {types.put(Types.DISTINCT, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.DOUBLE, EdmPrimitiveTypeKind.Double);}
+    static {types.put(Types.FLOAT, EdmPrimitiveTypeKind.Double);}
+    static {types.put(Types.INTEGER, EdmPrimitiveTypeKind.Int32);}
+    // static {types.put(Types.JAVA_OBJECT, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.LONGNVARCHAR, EdmPrimitiveTypeKind.String);}
+    static {types.put(Types.LONGVARBINARY, EdmPrimitiveTypeKind.Binary);}
+    static {types.put(Types.LONGVARCHAR, EdmPrimitiveTypeKind.String);}
+    static {types.put(Types.NCHAR, EdmPrimitiveTypeKind.String);}
+    static {types.put(Types.NCLOB, EdmPrimitiveTypeKind.String);}
+    // static {types.put(Types.NULL, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.NUMERIC, EdmPrimitiveTypeKind.Double);}
+    static {types.put(Types.NVARCHAR, EdmPrimitiveTypeKind.String);}
+    // static {types.put(Types.OTHER, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.REAL, EdmPrimitiveTypeKind.Double);}
+    // static {types.put(Types.REF, EdmPrimitiveTypeKind.);}
+    // static {types.put(Types.REF_CURSOR, EdmPrimitiveTypeKind.);}
+    // static {types.put(Types.ROWID, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.SMALLINT, EdmPrimitiveTypeKind.Int16);}
+    static {types.put(Types.SQLXML, EdmPrimitiveTypeKind.String);}
+    // static {types.put(Types.STRUCT, EdmPrimitiveTypeKind.);}
+    static {types.put(Types.TIME, EdmPrimitiveTypeKind.TimeOfDay);}
+    static {types.put(Types.TIMESTAMP, EdmPrimitiveTypeKind.Date);}
+    static {types.put(Types.TIMESTAMP_WITH_TIMEZONE, EdmPrimitiveTypeKind.DateTimeOffset);}
+    static {types.put(Types.TIME_WITH_TIMEZONE, EdmPrimitiveTypeKind.DateTimeOffset);}
+    static {types.put(Types.TINYINT, EdmPrimitiveTypeKind.SByte);}
+    static {types.put(Types.VARBINARY, EdmPrimitiveTypeKind.Binary);}
+    static {types.put(Types.VARCHAR, EdmPrimitiveTypeKind.String);}
 
-    @Override
-    public CsdlEntityContainer getEntityContainer () throws ODataException {
-	log("OK, I'm returning an entityContainer.  But, to whom???");
-	for (CsdlSchema s : getSchemas()) return s.getEntityContainer();
-	log("No EntityContainer???");
-	throw new IllegalStateException("No EntityContainer???");}
+    // instance data
 
-    @Override
-    public CsdlEntitySet getEntitySet (FullQualifiedName entityContainer, String entitySetName) throws ODataException {
-	log(String.format("Returning an entitySet:  %s, %s", entityContainer + "", entitySetName));
-	// log("Stacktrace:", new Exception());
-	return getRoot().schemas.get(entityContainer.getNamespace()).getEntityContainer().getEntitySet(entitySetName);}
+    DataSource ds;
+    GenericServlet s;
 
-    @Override
-    public CsdlEntityContainerInfo getEntityContainerInfo (FullQualifiedName entityContainerName) throws ODataException {
-	CsdlEntityContainerInfo info = new CsdlEntityContainerInfo();
-	log(String.format("entityContainerName: %s", entityContainerName));
-	info.setContainerName(new FullQualifiedName("public", "EntityContainer"));
-	return info;}
+    // internal functions
+
+    AutoCloseableDatabaseMetaData closeable (final DatabaseMetaData m) {
+	return
+	    (AutoCloseableDatabaseMetaData)
+	    Proxy
+	    .newProxyInstance(AutoCloseableDatabaseMetaData
+			      .class
+			      .getClassLoader(),
+			      new Class[]{AutoCloseableDatabaseMetaData.class},
+			      new InvocationHandler () {
+				  @Override public Object invoke (Object proxy, Method method, Object[] args) throws Throwable {
+				      if ("close".equals(method.getName())) return null;
+				      return method.invoke(m, args);}});}
 
     ProtonRoot getRoot () throws ODataException {
 	ProtonRoot root = new ProtonRoot();
@@ -251,6 +227,32 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    while (p.next()) root.process(p, true);
 	    return root;}
 	catch (Throwable e) {e.printStackTrace(System.out); throw new ODataException(e);}}
+
+    // external API
+
+    public ProtonEdmProvider (GenericServlet servlet, DataSource ds) {
+	super();
+	this.ds = ds;
+	this.s = servlet;}
+
+    @Override
+    public CsdlEntityType getEntityType (FullQualifiedName entityTypeName) throws ODataException {
+	return getRoot().schemas.get(entityTypeName.getNamespace()).entityTypes.get(entityTypeName.getName());}
+
+    @Override
+    public CsdlEntityContainer getEntityContainer () throws ODataException {
+	for (CsdlSchema s : getSchemas()) return s.getEntityContainer();
+	throw new IllegalStateException("No EntityContainer???");}
+
+    @Override
+    public CsdlEntitySet getEntitySet (FullQualifiedName entityContainer, String entitySetName) throws ODataException {
+	return getRoot().schemas.get(entityContainer.getNamespace()).getEntityContainer().getEntitySet(entitySetName);}
+
+    @Override
+    public CsdlEntityContainerInfo getEntityContainerInfo (FullQualifiedName entityContainerName) throws ODataException {
+	CsdlEntityContainerInfo info = new CsdlEntityContainerInfo();
+	info.setContainerName(new FullQualifiedName("public", "EntityContainer"));
+	return info;}
 
     @Override
     public List<CsdlSchema> getSchemas () throws ODataException {

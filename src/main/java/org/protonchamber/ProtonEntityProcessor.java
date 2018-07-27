@@ -17,6 +17,13 @@ import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
 
 public class ProtonEntityProcessor implements EntityProcessor {
+    static class AutoCloseableWrapper<T> implements AutoCloseable {
+	T wrapped;
+	public AutoCloseableWrapper (T wrapped) {this.wrapped = wrapped;}
+	@Override
+	public void close () {}
+	public T getWrapped () {return wrapped;}}
+
     OData odata;
     ServiceMetadata serviceMetaData;
     DataSource ds;
@@ -30,13 +37,6 @@ public class ProtonEntityProcessor implements EntityProcessor {
     public void init (OData odata, ServiceMetadata serviceMetaData) {
 	this.odata = odata;
 	this.serviceMetaData = serviceMetaData;}
-
-    static class AutoCloseableWrapper<T> implements AutoCloseable {
-	T wrapped;
-	public AutoCloseableWrapper (T wrapped) {this.wrapped = wrapped;}
-	@Override
-	public void close () {}
-	public T getWrapped () {return wrapped;}}
 
     @Override
     public void createEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException, SerializerException {
