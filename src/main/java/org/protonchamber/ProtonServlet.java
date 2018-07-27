@@ -12,12 +12,19 @@ import org.apache.olingo.server.api.*;
 import org.apache.olingo.server.api.debug.*;
 
 public class ProtonServlet extends HttpServlet {
+
+    // class data
+    
     private static final long serialVersionUID = 1L;
+
+    // instance data
 
     DataSource ds;
     ServiceMetadata m;
     OData odata;
     ODataHttpHandler handler;
+
+    // external API
 
     @Override
     public void init (ServletConfig config) throws ServletException {

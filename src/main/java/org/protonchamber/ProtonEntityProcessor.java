@@ -17,6 +17,9 @@ import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
 
 public class ProtonEntityProcessor implements EntityProcessor {
+
+    // nested types
+
     static class AutoCloseableWrapper<T> implements AutoCloseable {
 	T wrapped;
 	public AutoCloseableWrapper (T wrapped) {this.wrapped = wrapped;}
@@ -24,10 +27,14 @@ public class ProtonEntityProcessor implements EntityProcessor {
 	public void close () {}
 	public T getWrapped () {return wrapped;}}
 
+    // instance data
+
     OData odata;
     ServiceMetadata serviceMetaData;
     DataSource ds;
     GenericServlet servlet;
+
+    // external API
 
     public ProtonEntityProcessor (DataSource ds, GenericServlet servlet) {
 	this.ds = ds;

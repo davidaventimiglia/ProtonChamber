@@ -16,10 +16,15 @@ import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
 
 public class ProtonEntityCollectionProcessor implements EntityCollectionProcessor {
+
+    // instance data
+
     OData odata;
     ServiceMetadata serviceMetaData;
     DataSource ds;
     GenericServlet servlet;
+
+    // external API
 
     public ProtonEntityCollectionProcessor (DataSource ds, GenericServlet servlet) {
 	this.ds = ds;
