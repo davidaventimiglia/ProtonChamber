@@ -37,7 +37,7 @@ Content-Type: application/json
 }
 
 # update a person
-PUT http://localhost:8080/ProtonChamber/ProtonService.svc/person(9)
+PUT http://localhost:8080/ProtonChamber/ProtonService.svc/person(11)
 Content-Type: application/json
 
 {
@@ -47,4 +47,4 @@ Content-Type: application/json
 }
 
 # delete a person
-DELETE http://localhost:8080/ProtonChamber/ProtonService.svc/person(9)
+DELETE http://localhost:8080/ProtonChamber/ProtonService.svc/person(11)
