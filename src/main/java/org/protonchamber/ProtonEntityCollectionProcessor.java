@@ -44,8 +44,9 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 		Map<String, String> pairs = new HashMap<>();
 		for (Property p : e.getProperties()) pairs.put(p.getName(), ""+p.getValue());
 		List<String> sqlPredicates = new ArrayList<>();
+		sqlPredicates.add("true");
 		for (UriParameter p : es.getKeyPredicates()) sqlPredicates.add(String.format("%s=%s", p.getName(), String.format("'%s'", p.getText())));
-		String select = String.format("select * from %s where true and %s", es.getEntitySet().getName(), String.join("and", sqlPredicates));
+		String select = String.format("select * from %s where %s", es.getEntitySet().getName(), String.join(" and ", sqlPredicates));
 		try (Connection c = ds.getConnection();
 		     Statement s = c.createStatement();
 		     ResultSet r = s.executeQuery(select)) {

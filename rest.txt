@@ -9,13 +9,13 @@
 # Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
 
 # get metadata
-GET http://192.168.151.41:8080/ProtonChamber/ProtonService.svc/$metadata
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
 
 # get data
-GET http://192.168.151.41:8080/ProtonChamber/ProtonService.svc/document_sub_types?odata-debug=json
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?odata-debug=json
 
 # get apple skus in json
-GET http://192.168.151.41:8080/ProtonChamber/ProtonService.svc/applestore_skus?$format=json
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$format=json
 
 # get metadata
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
