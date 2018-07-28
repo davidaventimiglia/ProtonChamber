@@ -27,13 +27,13 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(26)
 
 # insert a person
-POST http://localhost:8080/ProtonChamber/ProtonService.svc/person
+POST http://localhost:8080/ProtonChamber/ProtonService.svc/person?odata-debug=json
 Content-Type: application/json
 
 {
-  "last_name": "'Kwok'",
-  "first_name": "'Alan'",
-  "age": 39
+  "last_name": "'Ventimiglia'",
+  "first_name": "'Yuki'",
+  "age": 9
 }
 
 # insert a person
