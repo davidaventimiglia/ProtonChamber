@@ -24,7 +24,7 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
 
 # get an individual person
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(1)
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(26)
 
 # insert a person
 POST http://localhost:8080/ProtonChamber/ProtonService.svc/person
@@ -33,6 +33,16 @@ Content-Type: application/json
 {
   "last_name": "'Kwok'",
   "first_name": "'Alan'",
+  "age": 39
+}
+
+# insert a person
+POST http://localhost:8080/ProtonChamber/ProtonService.svc/person
+Content-Type: application/json
+
+{
+  "last_name": "'Ventimiglia'",
+  "first_name": "'David'",
   "age": 39
 }
 

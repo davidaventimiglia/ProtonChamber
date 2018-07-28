@@ -56,7 +56,7 @@ public class ProtonEntityProcessor implements EntityProcessor {
 		String insert = String.format("insert into %s (%s) values (%s)", es.getEntitySet().getName(), String.join(",", names), String.join(",", values));
 		try (Connection c = ds.getConnection();
 		     Statement s = c.createStatement();
-		     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(insert, es.getEntityType().getPropertyNames().toArray(new String[0])));
+		     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(insert, es.getEntityType().getPropertyNames().toArray(new String[0])));
 		     ResultSet r = s.getGeneratedKeys()) {
 		    while (r.next())
 			for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
@@ -86,7 +86,7 @@ public class ProtonEntityProcessor implements EntityProcessor {
 		String update = String.format("update %s set %s where true and %s", es.getEntitySet().getName(), pairs.toString().replace("}","").replace("{",""), String.join("and", sqlPredicates));
 		try (Connection c = ds.getConnection();
 		     Statement s = c.createStatement();
-		     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(update))) {
+		     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(update))) {
 		    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 		    return;}
 		catch (Exception ex) {
@@ -107,7 +107,8 @@ public class ProtonEntityProcessor implements EntityProcessor {
 		String select = String.format("select * from %s where %s", es.getEntitySet().getName(), String.join(" and ", sqlPredicates));
 		try (Connection c = ds.getConnection();
 		     Statement s = c.createStatement();
-		     ResultSet r = s.executeQuery(select)) {
+		     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(select));
+		     ResultSet r = s.getResultSet()) {
 		    while (r.next())
 			for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
 			    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
@@ -133,7 +134,7 @@ public class ProtonEntityProcessor implements EntityProcessor {
 		String delete = String.format("delete from %s where true and %s", es.getEntitySet().getName(), String.join("and", sqlPredicates));
 		try (Connection c = ds.getConnection();
 		     Statement s = c.createStatement();
-		     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(delete))) {
+		     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(delete))) {
 		    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 		    return;}
 		catch (Exception ex) {
