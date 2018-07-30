@@ -18,8 +18,8 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
     
     static interface Processor {
 	default void process (ResultSet r) throws SQLException {}
-	default void process (ResultSet r, boolean b) throws SQLException {}
-	default void process (ResultSet r, boolean b, boolean c) throws SQLException {}}
+	default void process (ResultSet p, boolean b) throws SQLException {}
+	default void process (ResultSet x, boolean b, boolean c) throws SQLException {}}
 
     static interface AutoCloseableDatabaseMetaData extends AutoCloseable, DatabaseMetaData {}
 
@@ -41,8 +41,8 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	public void process (ResultSet r, boolean b) throws SQLException {
 	    for (Processor p : schemas.values()) p.process(r, true);}
 	@Override
-	public void process (ResultSet r, boolean b, boolean c) throws SQLException {
-	    for (Processor p : schemas.values()) p.process(r, true, true);}
+	public void process (ResultSet x, boolean b, boolean c) throws SQLException {
+	    for (Processor p : schemas.values()) p.process(x, true, true);}
 	public List<CsdlSchema> getSchemas () {
 	    return new ArrayList<>(schemas.values());}}
 
@@ -65,10 +65,11 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    if (r.getString("TABLE_SCHEM").equals(getNamespace()))
 		for (Processor p : entityTypes.values()) p.process(r, true);}
 	@Override
-	public void process (ResultSet r, boolean b, boolean c) throws SQLException {
-	    servlet.log(String.format("%s:%s", r.getString("PKTABLE_SCHEM"), getNamespace()));
-	    if (r.getString("PKTABLE_SCHEM").equals(getNamespace()))
-		for (Processor p : entityTypes.values()) p.process(r, true, true);}
+	public void process (ResultSet x, boolean b, boolean c) throws SQLException {
+	    if (x.getString("PKTABLE_SCHEM").equals(getNamespace()))
+		for (Processor p : entityTypes.values()) p.process(x, true, true);
+	    if (x.getString("PKTABLE_SCHEM").equals(getNamespace()))
+		for (Processor p : entityContainers.values()) p.process(x, true, true);}
 	@Override
 	public List<CsdlEntityType> getEntityTypes () {
 	    return new ArrayList<>(entityTypes.values());}
@@ -103,7 +104,6 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    for (Processor p : properties.values()) p.process(r, true);}
 	@Override
 	public void process (ResultSet r, boolean b, boolean c) throws SQLException {
-	    servlet.log(String.format("%s:%s", r.getString("PKTABLE_NAME"), getName()));
 	    if (r.getString("PKTABLE_NAME").equals(getName()))
 		getNavigationProperties().add(new ProtonNavigationProperty(this, r, true));
 	    if (r.getString("FKTABLE_NAME").equals(getName()))
@@ -152,6 +152,10 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    if (r.getString("TABLE_SCHEM").equals(getSchema().getNamespace())) entitySets.putIfAbsent(r.getString("TABLE_NAME"), new ProtonEntitySet(this, r));
 	    for (Processor p : entitySets.values()) p.process(r);}
 	@Override
+	public void process (ResultSet x, boolean b, boolean c) throws SQLException {
+	    servlet.log(String.format("%s:%s", x.getString("PKTABLE_NAME"), getName()));
+	    for (Processor p : entitySets.values()) p.process(x, true, true);}
+	@Override
 	public List<CsdlEntitySet> getEntitySets () {
 	    return new ArrayList<>(entitySets.values());}}
 
@@ -163,11 +167,12 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    setName(r.getString("TABLE_NAME"));
 	    setType(new FullQualifiedName(r.getString("TABLE_SCHEM"), r.getString("TABLE_NAME")));}
 	@Override
-	public void process (ResultSet r) throws SQLException {
-	    if (r.getString("PKTABLE_NAME").equals(getName()))
-		getNavigationPropertyBindings().add(new ProtonNavigationPropertyBinding(this, r, true));
-	    if (r.getString("FKTABLE_NAME").equals(getName()))
-		getNavigationPropertyBindings().add(new ProtonNavigationPropertyBinding(this, r, false));}}
+	public void process (ResultSet x, boolean b, boolean c) throws SQLException {
+	    servlet.log(String.format("%s:%s", x.getString("PKTABLE_NAME"), getName()));
+	    if (x.getString("PKTABLE_NAME").equals(getName()))
+		getNavigationPropertyBindings().add(new ProtonNavigationPropertyBinding(this, x, true));
+	    if (x.getString("FKTABLE_NAME").equals(getName()))
+		getNavigationPropertyBindings().add(new ProtonNavigationPropertyBinding(this, x, false));}}
     
     class ProtonNavigationPropertyBinding extends CsdlNavigationPropertyBinding implements Processor {
 	ProtonEntitySet entitySet;
