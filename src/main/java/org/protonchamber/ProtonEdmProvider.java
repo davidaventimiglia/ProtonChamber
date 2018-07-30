@@ -9,6 +9,7 @@ import javax.sql.*;
 import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.provider.*;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
+import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
 import org.apache.olingo.commons.api.ex.*;
 
 public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
@@ -160,8 +161,22 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    super();
 	    this.entityContainer = entityContainer;
 	    setName(r.getString("TABLE_NAME"));
-	    setType(new FullQualifiedName(r.getString("TABLE_SCHEM"), r.getString("TABLE_NAME")));}}
+	    setType(new FullQualifiedName(r.getString("TABLE_SCHEM"), r.getString("TABLE_NAME")));}
+	@Override
+	public void process (ResultSet r) throws SQLException {
+	    if (r.getString("PKTABLE_NAME").equals(getName()))
+		getNavigationPropertyBindings().add(new ProtonNavigationPropertyBinding(this, r, true));
+	    if (r.getString("FKTABLE_NAME").equals(getName()))
+		getNavigationPropertyBindings().add(new ProtonNavigationPropertyBinding(this, r, false));}}
     
+    class ProtonNavigationPropertyBinding extends CsdlNavigationPropertyBinding implements Processor {
+	ProtonEntitySet entitySet;
+	public ProtonNavigationPropertyBinding (ProtonEntitySet entitySet, ResultSet r, boolean forward) throws SQLException {
+	    super();
+	    this.entitySet = entitySet;
+	    setPath(r.getString(forward ? "FKTABLE_NAME" : "PKTABLE_NAME"));
+	    setTarget(r.getString(forward ? "FKTABLE_NAME" : "PKTABLE_NAME"));}}
+
     // class data
 
     static Map<Integer, EdmPrimitiveTypeKind> types = new HashMap<>();
