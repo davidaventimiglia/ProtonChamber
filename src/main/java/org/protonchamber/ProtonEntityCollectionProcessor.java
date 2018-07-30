@@ -37,32 +37,32 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 
     @Override
     public void readEntityCollection (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-	for (UriResource part : uriInfo.getUriResourceParts())
-	    if (part.getKind()==UriResourceKind.entitySet) {
-		UriResourceEntitySet es = (UriResourceEntitySet)part;
-		Entity e = new Entity();
-		Map<String, String> pairs = new HashMap<>();
-		for (Property p : e.getProperties()) pairs.put(p.getName(), ""+p.getValue());
-		List<String> sqlPredicates = new ArrayList<>();
-		sqlPredicates.add("true");
-		for (UriParameter p : es.getKeyPredicates()) sqlPredicates.add(String.format("%s=%s", p.getName(), String.format("'%s'", p.getText())));
-		String select = String.format("select * from %s where %s", es.getEntitySet().getName(), String.join(" and ", sqlPredicates));
-		try (Connection c = ds.getConnection();
-		     Statement s = c.createStatement();
-		     ResultSet r = s.executeQuery(select)) {
-		    EntityCollection ec = new EntityCollection();
-		    while (r.next()) {
-			for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
-			    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
-				if (e.getProperty(r.getMetaData().getColumnName(i))==null)
-				    e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
-				else
-				    e.getProperty(r.getMetaData().getColumnName(i)).setValue(ValueType.PRIMITIVE, r.getObject(i));
-			ec.getEntities().add(e);}
-		    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getEntitySet().getName()).contextURL(ContextURL.with().entitySet(es.getEntitySet()).build()).build()).getContent());
-		    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-		    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
-		    return;}
-		catch (Exception ex) {
-		    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), select), 500, Locale.US);}}
-	throw new IllegalStateException("Should never get here");}}
+	if (uriInfo.getUriResourceParts().isEmpty()) throw new IllegalStateException("No URI Resource parts!");
+	if (uriInfo.getUriResourceParts().get(0).getKind()!=UriResourceKind.entitySet) throw new IllegalStateException("Not an Entity Set!");
+	UriResourceEntitySet es = (UriResourceEntitySet)uriInfo.getUriResourceParts().get(0);
+	Entity e = new Entity();
+	Map<String, String> pairs = new HashMap<>();
+	for (Property p : e.getProperties()) pairs.put(p.getName(), ""+p.getValue());
+	List<String> sqlPredicates = new ArrayList<>();
+	sqlPredicates.add("true");
+	for (UriParameter p : es.getKeyPredicates()) sqlPredicates.add(String.format("%s=%s", p.getName(), String.format("'%s'", p.getText())));
+	String select = String.format("select * from %s where %s", es.getEntitySet().getName(), String.join(" and ", sqlPredicates));
+	try (Connection c = ds.getConnection();
+	     Statement s = c.createStatement();
+	     ResultSet r = s.executeQuery(select)) {
+	    EntityCollection ec = new EntityCollection();
+	    while (r.next()) {
+		for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
+		    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
+			if (e.getProperty(r.getMetaData().getColumnName(i))==null)
+			    e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
+			else
+			    e.getProperty(r.getMetaData().getColumnName(i)).setValue(ValueType.PRIMITIVE, r.getObject(i));
+		ec.getEntities().add(e);}
+	    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getEntitySet().getName()).contextURL(ContextURL.with().entitySet(es.getEntitySet()).build()).build()).getContent());
+	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	    return;}
+	catch (Exception ex) {
+	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), select), 500, Locale.US);}}}
+
