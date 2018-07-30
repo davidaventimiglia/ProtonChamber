@@ -23,8 +23,11 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
 # get the person data
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
 
+# navigate to person->addres
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(18)/address
+
 # get an individual person
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(26)
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(18)
 
 # insert a person
 POST http://localhost:8080/ProtonChamber/ProtonService.svc/person?odata-debug=json

@@ -10,6 +10,7 @@ import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.provider.*;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
+import org.apache.olingo.commons.api.edm.provider.annotation.*;
 import org.apache.olingo.commons.api.ex.*;
 
 public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
@@ -136,6 +137,11 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    setType(new FullQualifiedName(r.getString("PKTABLE_SCHEM"), r.getString(forward ? "FKTABLE_NAME" : "PKTABLE_NAME")).toString());
 	    setCollection(forward);
 	    setNullable(false);
+	    CsdlAnnotation a = new CsdlAnnotation();
+	    CsdlExpression e = new CsdlConstantExpression(CsdlConstantExpression.ConstantExpressionType.String, String.format("%s.%s=%s.%s", r.getString("PKTABLE_NAME"), r.getString("PKCOLUMN_NAME"), r.getString("FKTABLE_NAME"), r.getString("FKCOLUMN_NAME")));
+	    a.setExpression(e);
+	    a.setTerm("Core.Description");
+	    getAnnotations().add(a);
 	    setPartner(r.getString(forward ? "PKTABLE_NAME" : "FKTABLE_NAME"));}}
 
     class ProtonEntityContainer extends CsdlEntityContainer implements Processor {
@@ -153,7 +159,6 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    for (Processor p : entitySets.values()) p.process(r);}
 	@Override
 	public void process (ResultSet x, boolean b, boolean c) throws SQLException {
-	    servlet.log(String.format("%s:%s", x.getString("PKTABLE_NAME"), getName()));
 	    for (Processor p : entitySets.values()) p.process(x, true, true);}
 	@Override
 	public List<CsdlEntitySet> getEntitySets () {
@@ -168,19 +173,18 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    setType(new FullQualifiedName(r.getString("TABLE_SCHEM"), r.getString("TABLE_NAME")));}
 	@Override
 	public void process (ResultSet x, boolean b, boolean c) throws SQLException {
-	    servlet.log(String.format("%s:%s", x.getString("PKTABLE_NAME"), getName()));
 	    if (x.getString("PKTABLE_NAME").equals(getName()))
 		getNavigationPropertyBindings().add(new ProtonNavigationPropertyBinding(this, x, true));
 	    if (x.getString("FKTABLE_NAME").equals(getName()))
 		getNavigationPropertyBindings().add(new ProtonNavigationPropertyBinding(this, x, false));}}
     
     class ProtonNavigationPropertyBinding extends CsdlNavigationPropertyBinding implements Processor {
-	ProtonEntitySet entitySet;
-	public ProtonNavigationPropertyBinding (ProtonEntitySet entitySet, ResultSet r, boolean forward) throws SQLException {
-	    super();
-	    this.entitySet = entitySet;
-	    setPath(r.getString(forward ? "FKTABLE_NAME" : "PKTABLE_NAME"));
-	    setTarget(r.getString(forward ? "FKTABLE_NAME" : "PKTABLE_NAME"));}}
+    	ProtonEntitySet entitySet;
+    	public ProtonNavigationPropertyBinding (ProtonEntitySet entitySet, ResultSet r, boolean forward) throws SQLException {
+    	    super();
+    	    this.entitySet = entitySet;
+    	    setPath(r.getString(forward ? "FKTABLE_NAME" : "PKTABLE_NAME"));
+    	    setTarget(r.getString(forward ? "FKTABLE_NAME" : "PKTABLE_NAME"));}}
 
     // class data
 
