@@ -8,6 +8,7 @@ import javax.servlet.*;
 import javax.sql.*;
 import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.provider.*;
+import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
 import org.apache.olingo.commons.api.ex.*;
 
 public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
@@ -16,18 +17,19 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
     
     static interface Processor {
 	default void process (ResultSet r) throws SQLException {}
-	default void process (ResultSet r, boolean b) throws SQLException {}}
+	default void process (ResultSet r, boolean b) throws SQLException {}
+	default void process (ResultSet r, boolean b, boolean c) throws SQLException {}}
 
     static interface AutoCloseableDatabaseMetaData extends AutoCloseable, DatabaseMetaData {}
 
-    static class AutoCloseableWrapper<T> implements AutoCloseable {
+    class AutoCloseableWrapper<T> implements AutoCloseable {
 	T wrapped;
 	public AutoCloseableWrapper (T wrapped) {this.wrapped = wrapped;}
 	@Override
 	public void close () {}
 	public T getWrapped () {return wrapped;}}
 
-    static class ProtonRoot implements Processor {
+    class ProtonRoot implements Processor {
 	Map<String, ProtonSchema> schemas = new HashMap<>();
 	public ProtonRoot () {}
 	@Override
@@ -37,10 +39,13 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	@Override
 	public void process (ResultSet r, boolean b) throws SQLException {
 	    for (Processor p : schemas.values()) p.process(r, true);}
+	@Override
+	public void process (ResultSet r, boolean b, boolean c) throws SQLException {
+	    for (Processor p : schemas.values()) p.process(r, true, true);}
 	public List<CsdlSchema> getSchemas () {
 	    return new ArrayList<>(schemas.values());}}
 
-    static class ProtonSchema extends CsdlSchema implements Processor {
+    class ProtonSchema extends CsdlSchema implements Processor {
 	ProtonRoot root;
 	Map<String, ProtonEntityType> entityTypes = new HashMap<>();
 	Map<String, ProtonEntityContainer> entityContainers = new HashMap<>();
@@ -57,7 +62,12 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	@Override
 	public void process (ResultSet r, boolean b) throws SQLException {
 	    if (r.getString("TABLE_SCHEM").equals(getNamespace()))
-	     for (Processor p : entityTypes.values()) p.process(r, true);}
+		for (Processor p : entityTypes.values()) p.process(r, true);}
+	@Override
+	public void process (ResultSet r, boolean b, boolean c) throws SQLException {
+	    servlet.log(String.format("%s:%s", r.getString("PKTABLE_SCHEM"), getNamespace()));
+	    if (r.getString("PKTABLE_SCHEM").equals(getNamespace()))
+		for (Processor p : entityTypes.values()) p.process(r, true, true);}
 	@Override
 	public List<CsdlEntityType> getEntityTypes () {
 	    return new ArrayList<>(entityTypes.values());}
@@ -66,12 +76,12 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    for (CsdlEntityContainer e : entityContainers.values()) return e;
 	    throw new IllegalStateException();}}
 
-    static class ProtonPropertyRef extends CsdlPropertyRef {
+    class ProtonPropertyRef extends CsdlPropertyRef {
 	public ProtonPropertyRef (String alias, String name) {
 	    setAlias(alias);
 	    setName(name);}}
 
-    static class ProtonEntityType extends CsdlEntityType implements Processor {
+    class ProtonEntityType extends CsdlEntityType implements Processor {
 	ProtonSchema schema;
 	Map<String, ProtonProperty> properties = new HashMap<>();
 	public ProtonEntityType (ProtonSchema schema, ResultSet r) throws SQLException {
@@ -91,10 +101,17 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 		getKey().add(new ProtonPropertyRef(r.getString("COLUMN_NAME"), r.getString("COLUMN_NAME")));
 	    for (Processor p : properties.values()) p.process(r, true);}
 	@Override
+	public void process (ResultSet r, boolean b, boolean c) throws SQLException {
+	    servlet.log(String.format("%s:%s", r.getString("PKTABLE_NAME"), getName()));
+	    if (r.getString("PKTABLE_NAME").equals(getName()))
+		getNavigationProperties().add(new ProtonNavigationProperty(this, r, true));
+	    if (r.getString("FKTABLE_NAME").equals(getName()))
+		getNavigationProperties().add(new ProtonNavigationProperty(this, r, false));}
+	@Override
 	public List<CsdlProperty> getProperties () {
 	    return new ArrayList<>(properties.values());}}
 
-    static class ProtonProperty extends CsdlProperty implements Processor {
+    class ProtonProperty extends CsdlProperty implements Processor {
 	ProtonEntityType entityType;
 	public ProtonProperty (ProtonEntityType entityType, ResultSet r) throws SQLException {
 	    super();
@@ -109,7 +126,18 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    setNullable(true);
 	    setScale(r.getInt("DECIMAL_DIGITS"));}}
 
-    static class ProtonEntityContainer extends CsdlEntityContainer implements Processor {
+    class ProtonNavigationProperty extends CsdlNavigationProperty implements Processor {
+	ProtonEntityType entityType;
+	public ProtonNavigationProperty (ProtonEntityType entityType, ResultSet r, boolean forward) throws SQLException {
+	    super();
+	    this.entityType = entityType;
+	    setName(r.getString(forward ? "FKTABLE_NAME" : "PKTABLE_NAME"));
+	    setType(new FullQualifiedName(r.getString("PKTABLE_SCHEM"), r.getString(forward ? "FKTABLE_NAME" : "PKTABLE_NAME")).toString());
+	    setCollection(forward);
+	    setNullable(false);
+	    setPartner(r.getString(forward ? "PKTABLE_NAME" : "FKTABLE_NAME"));}}
+
+    class ProtonEntityContainer extends CsdlEntityContainer implements Processor {
 	ProtonSchema schema;
 	Map<String, ProtonEntitySet> entitySets = new HashMap<>();
 	public ProtonEntityContainer (ProtonSchema schema, ResultSet r) throws SQLException {
@@ -126,7 +154,7 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	public List<CsdlEntitySet> getEntitySets () {
 	    return new ArrayList<>(entitySets.values());}}
 
-    static class ProtonEntitySet extends CsdlEntitySet implements Processor {
+    class ProtonEntitySet extends CsdlEntitySet implements Processor {
 	ProtonEntityContainer entityContainer;
 	public ProtonEntitySet (ProtonEntityContainer entityContainer, ResultSet r) throws SQLException {
 	    super();
@@ -200,7 +228,7 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
     // instance data
 
     DataSource ds;
-    GenericServlet s;
+    GenericServlet servlet;
 
     // internal functions
 
@@ -222,9 +250,11 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	try (Connection c = ds.getConnection();
 	     AutoCloseableDatabaseMetaData m = closeable(c.getMetaData());
 	     ResultSet r = m.getColumns(null, null, null, null);
-	     ResultSet p = m.getPrimaryKeys(null, null, null)) {
+	     ResultSet p = m.getPrimaryKeys(null, null, null);
+	     ResultSet x = m.getCrossReference(null, null, null, null, null, null)) {
 	    while (r.next()) root.process(r);
 	    while (p.next()) root.process(p, true);
+	    while (x.next()) root.process(x, true, true);
 	    return root;}
 	catch (Throwable e) {e.printStackTrace(System.out); throw new ODataException(e);}}
 
@@ -233,7 +263,7 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
     public ProtonEdmProvider (GenericServlet servlet, DataSource ds) {
 	super();
 	this.ds = ds;
-	this.s = servlet;}
+	this.servlet = servlet;}
 
     @Override
     public CsdlEntityType getEntityType (FullQualifiedName entityTypeName) throws ODataException {
