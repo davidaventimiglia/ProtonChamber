@@ -7,6 +7,7 @@ import javax.servlet.*;
 import javax.sql.*;
 import org.apache.olingo.commons.api.data.*;
 import org.apache.olingo.commons.api.edm.*;
+import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.constants.*;
 import org.apache.olingo.commons.api.format.*;
 import org.apache.olingo.commons.api.http.*;
@@ -14,6 +15,7 @@ import org.apache.olingo.server.api.*;
 import org.apache.olingo.server.api.processor.*;
 import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
+import org.apache.olingo.server.api.uri.UriResourceNavigation;
 
 public class ProtonEntityCollectionProcessor implements EntityCollectionProcessor {
 
@@ -40,38 +42,35 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	List<String> tables = new ArrayList<>();
 	List<String> predicates = new ArrayList<>(); predicates.add("true");
 	UriResource previous = null;
-	UriResourceEntitySet es = null;
+	UriResourceEntitySet ues = null;
+	UriResourceNavigation nav = null;
+	EdmEntitySet es = null;
 	for (UriResource current : uriInfo.getUriResourceParts()) {
-	    servlet.log(String.format("segmentValue:  %s", current.getSegmentValue()));
 	    if (current instanceof UriResourceEntitySet) {
-		es = (UriResourceEntitySet)current;
-		for (UriParameter p : es.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getEntitySet().getName(), p.getName(), String.format("'%s'", p.getText())));
-		tables.add(es.getEntitySet().getName());
+		nav = null;
+		ues = (UriResourceEntitySet)current;
+		es = ues.getEntitySet();
+		for (UriParameter p : ues.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("'%s'", p.getText())));
+		tables.add(es.getName());
 		previous = current;}
 	    if (current instanceof UriResourceNavigation) {
-		UriResourceNavigation nav = (UriResourceNavigation)current;
+		nav = (UriResourceNavigation)current;
+		ues = null;
+		es = (EdmEntitySet)ues.getEntitySet().getRelatedBindingTarget(nav.getProperty().getName());
 		for (EdmAnnotation a : nav.getProperty().getAnnotations()) predicates.add(a.getExpression().asConstant().getValueAsString());
-		if (previous instanceof UriResourceEntitySet) {
-		    es = (UriResourceEntitySet)previous;
-		    EdmBindingTarget target = es.getEntitySet().getRelatedBindingTarget(nav.getProperty().getName());
-		    if (target instanceof EdmEntitySet) {
-			EdmEntitySet navigationTargetEntitySet = (EdmEntitySet)target;
-			tables.add(navigationTargetEntitySet.getName());}}}}
-	Entity e = new Entity();
+		tables.add(es.getName());}}
 	String select = String.format("select * from %s where %s", String.join(", ", tables), String.join(" and ", predicates));
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     ResultSet r = s.executeQuery(select)) {
 	    EntityCollection ec = new EntityCollection();
 	    while (r.next()) {
+		Entity e = new Entity();
 		for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
 		    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
-			if (e.getProperty(r.getMetaData().getColumnName(i))==null)
-			    e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
-			else
-			    e.getProperty(r.getMetaData().getColumnName(i)).setValue(ValueType.PRIMITIVE, r.getObject(i));
+			e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
 		ec.getEntities().add(e);}
-	    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getEntitySet().getName()).contextURL(ContextURL.with().entitySet(es.getEntitySet()).build()).build()).getContent());
+	    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getName()).contextURL(ContextURL.with().entitySet(es).build()).build()).getContent());
 	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 	    return;}
