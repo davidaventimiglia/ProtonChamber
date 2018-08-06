@@ -101,7 +101,7 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	@Override
 	public void process (ResultSet r, boolean b) throws SQLException {
 	    if (r.getString("TABLE_NAME").equals(getName()))
-		getKey().add(new ProtonPropertyRef(r.getString("COLUMN_NAME"), r.getString("COLUMN_NAME")));
+		super.getKey().add(new ProtonPropertyRef(r.getString("COLUMN_NAME"), r.getString("COLUMN_NAME")));
 	    for (Processor p : properties.values()) p.process(r, true);}
 	@Override
 	public void process (ResultSet r, boolean b, boolean c) throws SQLException {
@@ -109,6 +109,12 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 		getNavigationProperties().add(new ProtonNavigationProperty(this, r, true));
 	    if (r.getString("FKTABLE_NAME").equals(getName()))
 		getNavigationProperties().add(new ProtonNavigationProperty(this, r, false));}
+	@Override
+	public List<CsdlPropertyRef> getKey() {
+	    if (super.getKey().isEmpty())
+		for (CsdlProperty p : getProperties())
+		    super.getKey().add(new ProtonPropertyRef(p.getName(), p.getName()));
+	    return super.getKey();}
 	@Override
 	public List<CsdlProperty> getProperties () {
 	    return new ArrayList<>(properties.values());}}

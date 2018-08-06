@@ -18,7 +18,7 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?odata-debug=jso
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$format=json
 
 # get metadata
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata?$format=xml
 
 # get the person data
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
