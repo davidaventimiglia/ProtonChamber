@@ -41,38 +41,49 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
     public void readEntityCollection (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 	List<String> tables = new ArrayList<>();
 	List<String> predicates = new ArrayList<>(); predicates.add("true");
-	UriResource previous = null;
+	EdmEntitySet es = null;
 	UriResourceEntitySet ues = null;
 	UriResourceNavigation nav = null;
-	EdmEntitySet es = null;
 	for (UriResource current : uriInfo.getUriResourceParts()) {
 	    if (current instanceof UriResourceEntitySet) {
-		nav = null;
 		ues = (UriResourceEntitySet)current;
 		es = ues.getEntitySet();
-		for (UriParameter p : ues.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("'%s'", p.getText())));
-		tables.add(es.getName());
-		previous = current;}
+		for (UriParameter p : ues.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("'%s'", p.getText())));}
 	    if (current instanceof UriResourceNavigation) {
 		nav = (UriResourceNavigation)current;
-		ues = null;
-		es = (EdmEntitySet)ues.getEntitySet().getRelatedBindingTarget(nav.getProperty().getName());
-		for (EdmAnnotation a : nav.getProperty().getAnnotations()) predicates.add(a.getExpression().asConstant().getValueAsString());
-		tables.add(es.getName());}}
-	String select = String.format("select * from %s where %s", String.join(", ", tables), String.join(" and ", predicates));
+		es = (EdmEntitySet)
+		    (ues.getEntitySet()
+		     .getRelatedBindingTarget(nav
+					      .getProperty()
+					      .getName()));
+		for (UriParameter p : nav.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("'%s'", p.getText())));
+		for (EdmAnnotation a : nav.getProperty().getAnnotations())
+		    predicates
+			.add(a
+			     .getExpression()
+			     .asConstant()
+			     .getValueAsString());}
+	    tables.add(es.getName());}
+	String select = String.format("select %s.* from %s where %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates));
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     ResultSet r = s.executeQuery(select)) {
 	    EntityCollection ec = new EntityCollection();
 	    while (r.next()) {
 		Entity e = new Entity();
-		for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
-		    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
-			e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
+		for (int i=1; i<=r.getMetaData().getColumnCount(); i++) {
+		    if (es
+			.getEntityType()
+			.getProperty(r.getMetaData().getColumnName(i))
+			.getType()
+			.getKind()==EdmTypeKind.PRIMITIVE)
+			e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));}
 		ec.getEntities().add(e);}
 	    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getName()).contextURL(ContextURL.with().entitySet(es).build()).build()).getContent());
 	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 	    return;}
+	catch (SQLException ex) {
+	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.toString(), select), 500, Locale.US);}
 	catch (Exception ex) {
-	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), select), 500, Locale.US);}}}
+	    throw ex;}}}

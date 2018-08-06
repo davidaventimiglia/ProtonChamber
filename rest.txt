@@ -24,7 +24,7 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
 
 # navigate to person->address
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(18)/address
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(15)/address
 
 # get an individual person
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(18)
