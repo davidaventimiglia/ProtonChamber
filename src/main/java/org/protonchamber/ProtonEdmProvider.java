@@ -277,6 +277,7 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 				      return method.invoke(m, args);}});}
 
     ProtonRoot getRoot () throws ODataException {
+	servlet.log("getRoot()");
 	ProtonRoot root = new ProtonRoot();
 	try (Connection c = ds.getConnection();
 	     AutoCloseableDatabaseMetaData m = closeable(c.getMetaData());

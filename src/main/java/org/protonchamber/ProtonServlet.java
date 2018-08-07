@@ -30,7 +30,7 @@ public class ProtonServlet extends HttpServlet {
     public void init (ServletConfig config) throws ServletException {
 	try {
 	    super.init(config);
-	    ds = (DataSource)((Context)(new InitialContext()) .lookup("java:comp/env")).lookup(config.getInitParameter("dsname"));
+	    ds = (DataSource)((Context)(new InitialContext()).lookup("java:comp/env")).lookup(config.getInitParameter("dsname"));
 	    catalog = config.getInitParameter("CATALOG");
 	    schemaPattern = config.getInitParameter("SCHEMA_PATTERN");
 	    tableNamePattern = config.getInitParameter("TABLE_NAME_PATTERN");
