@@ -259,6 +259,7 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 
     DataSource ds;
     GenericServlet servlet;
+    String catalog, schemaPattern, tableNamePattern, columnNamePattern;
 
     // internal functions
 
@@ -279,9 +280,9 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	ProtonRoot root = new ProtonRoot();
 	try (Connection c = ds.getConnection();
 	     AutoCloseableDatabaseMetaData m = closeable(c.getMetaData());
-	     ResultSet r = m.getColumns(null, null, null, null);
-	     ResultSet p = m.getPrimaryKeys(null, null, null);
-	     ResultSet x = m.getCrossReference(null, null, null, null, null, null)) {
+	     ResultSet r = m.getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern);
+	     ResultSet p = m.getPrimaryKeys(catalog, schemaPattern, tableNamePattern);
+	     ResultSet x = m.getCrossReference(catalog, schemaPattern, tableNamePattern, catalog, schemaPattern, tableNamePattern)) {
 	    while (r.next()) root.process(r);
 	    while (p.next()) root.process(p, true);
 	    while (x.next()) root.process(x, true, true);
@@ -290,10 +291,14 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 
     // external API
 
-    public ProtonEdmProvider (GenericServlet servlet, DataSource ds) {
+    public ProtonEdmProvider (GenericServlet servlet, DataSource ds, String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) {
 	super();
 	this.ds = ds;
-	this.servlet = servlet;}
+	this.servlet = servlet;
+	this.catalog = catalog;
+	this.schemaPattern = schemaPattern;
+	this.tableNamePattern = tableNamePattern;
+	this.columnNamePattern = columnNamePattern;}
 
     @Override
     public CsdlEntityType getEntityType (FullQualifiedName entityTypeName) throws ODataException {

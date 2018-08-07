@@ -22,6 +22,7 @@ public class ProtonServlet extends HttpServlet {
     DataSource ds;
     OData odata = OData.newInstance();
     ODataHttpHandler handler;
+    String catalog, schemaPattern, tableNamePattern, columnNamePattern;
 
     // external API
 
@@ -30,7 +31,11 @@ public class ProtonServlet extends HttpServlet {
 	try {
 	    super.init(config);
 	    ds = (DataSource)((Context)(new InitialContext()) .lookup("java:comp/env")).lookup(config.getInitParameter("dsname"));
-	    handler = odata.createHandler(odata.createServiceMetadata(new ProtonEdmProvider(this, ds), new ArrayList<EdmxReference>()));
+	    catalog = config.getInitParameter("CATALOG");
+	    schemaPattern = config.getInitParameter("SCHEMA_PATTERN");
+	    tableNamePattern = config.getInitParameter("TABLE_NAME_PATTERN");
+	    columnNamePattern = config.getInitParameter("COLUMN_NAME_PATTERN");
+	    handler = odata.createHandler(odata.createServiceMetadata(new ProtonEdmProvider(this, ds, catalog, schemaPattern, tableNamePattern, columnNamePattern), new ArrayList<EdmxReference>()));
 	    handler.register(new ProtonEntityCollectionProcessor(ds, this));
 	    handler.register(new ProtonEntityProcessor(ds, this));
 	    handler.register(new DefaultDebugSupport());}
