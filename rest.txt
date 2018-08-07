@@ -1,33 +1,33 @@
 # -*- mode: restclient; -*-
 
 # undeploy
-# GET http://localhost:8080/manager/text/undeploy?path=/ProtonChamber
-# Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
+GET http://localhost:8080/manager/text/undeploy?path=/ProtonChamber
+Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
 
 # deploy
-# GET http://localhost:8080/manager/text/deploy?war=file:/home/dventimi/work/Bitbucket/protonchamber/target/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
-# Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
+GET http://localhost:8080/manager/text/deploy?war=file:/home/dventimi/work/Bitbucket/protonchamber/target/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
+Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
 
 # get metadata
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
 
-# get data
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?odata-debug=json
-
-# get apple skus in json
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$format=json
-
-# get metadata
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata?$format=xml
-
 # get the person data
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
+
+# get the address data
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/address
+
+# get a particular address
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)
 
 # navigate to person->address
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(15)/address
 
+# navigate from address->person
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)/person
+
 # get an individual person
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(18)
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(15)
 
 # insert a person
 POST http://localhost:8080/ProtonChamber/ProtonService.svc/person?odata-debug=json
