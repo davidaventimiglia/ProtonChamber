@@ -75,6 +75,7 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	    tables.add(es.getName());}
 	String select = String.format("select %s.* from %s where %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates));
 	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("select count(1) from %s where %s", String.join(", ", tables), String.join(" and ", predicates)) : "select 1";
+	Integer skip = uriInfo.getSkipOption()!=null ? uriInfo.getSkipOption().getValue() : null;
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
@@ -82,6 +83,7 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	     ResultSet x = t.executeQuery(count)) {
 	    EntityCollection ec = new EntityCollection();
 	    while (r.next()) {
+		if (skip!=null && --skip>0) break;
 		Entity e = new Entity();
 		for (int i=1; i<=r.getMetaData().getColumnCount(); i++) {
 		    if (es

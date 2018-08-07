@@ -17,6 +17,9 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
 # get the person list with $count=true
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$count=true
 
+# get the person list with $skip=n
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$skip=1
+
 # get the address list
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/address
 
