@@ -118,12 +118,18 @@ public class ProtonEntityProcessor implements EntityProcessor {
 			     .asConstant()
 			     .getValueAsString());}
 	    tables.add(es.getName());}
-	String select = String.format("select %s.* from %s where %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates));
+	Integer skip = uriInfo.getSkipOption()!=null ? uriInfo.getSkipOption().getValue() : null;
+	String limit = uriInfo.getTopOption()!=null ? String.format("limit %s", uriInfo.getTopOption().getValue()) : "";
+	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("select count(1) from %s where %s", String.join(", ", tables), String.join(" and ", predicates)) : "select 1";
+	String select = String.format("select %s.* from %s where %s %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates), limit);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
-	     ResultSet r = s.executeQuery(select)) {
+	     Statement t = c.createStatement();
+	     ResultSet r = s.executeQuery(select);
+	     ResultSet x = t.executeQuery(count)) {
 	    EntityCollection ec = new EntityCollection();
 	    while (r.next()) {
+		if (skip!=null && skip-->0) continue;
 		Entity e = new Entity();
 		for (int i=1; i<=r.getMetaData().getColumnCount(); i++) {
 		    if (es
@@ -133,7 +139,8 @@ public class ProtonEntityProcessor implements EntityProcessor {
 			.getKind()==EdmTypeKind.PRIMITIVE)
 			e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));}
 		ec.getEntities().add(e);}
-	    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getName()).contextURL(ContextURL.with().entitySet(es).build()).build()).getContent());
+	    while (x.next()) ec.setCount(x.getInt(1));
+	    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getName()).contextURL(ContextURL.with().entitySet(es).build()).count(uriInfo.getCountOption()).build()).getContent());
 	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 	    return;}
