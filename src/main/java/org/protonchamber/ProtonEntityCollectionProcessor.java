@@ -83,7 +83,7 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 	     ResultSet x = t.executeQuery(count)) {
 	    EntityCollection ec = new EntityCollection();
 	    while (r.next()) {
-		if (skip!=null && --skip>0) break;
+		if (skip!=null && skip-->0) continue;
 		Entity e = new Entity();
 		for (int i=1; i<=r.getMetaData().getColumnCount(); i++) {
 		    if (es
