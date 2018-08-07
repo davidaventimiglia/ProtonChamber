@@ -12,6 +12,9 @@ Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
 
 # get the person list
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
+
+# get the person list with $count=true
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$count=true
 
 # get the address list

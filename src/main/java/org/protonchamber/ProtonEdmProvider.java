@@ -24,13 +24,6 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 
     static interface AutoCloseableDatabaseMetaData extends AutoCloseable, DatabaseMetaData {}
 
-    class AutoCloseableWrapper<T> implements AutoCloseable {
-	T wrapped;
-	public AutoCloseableWrapper (T wrapped) {this.wrapped = wrapped;}
-	@Override
-	public void close () {}
-	public T getWrapped () {return wrapped;}}
-
     class ProtonRoot implements Processor {
 	Map<String, ProtonSchema> schemas = new HashMap<>();
 	public ProtonRoot () {}

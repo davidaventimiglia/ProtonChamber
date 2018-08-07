@@ -19,6 +19,15 @@ import org.apache.olingo.server.api.uri.UriResourceNavigation;
 
 public class ProtonEntityCollectionProcessor implements EntityCollectionProcessor {
 
+    // nested types
+
+    class AutoCloseableWrapper<T> implements AutoCloseable {
+    	T wrapped;
+    	public AutoCloseableWrapper (T wrapped) {this.wrapped = wrapped;}
+    	@Override
+    	public void close () {}
+    	public T getWrapped () {return wrapped;}}
+
     // instance data
 
     OData odata;
@@ -65,7 +74,7 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 			     .getValueAsString());}
 	    tables.add(es.getName());}
 	String select = String.format("select %s.* from %s where %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates));
-	String count = String.format("select count(1) from %s where %s", String.join(", ", tables), String.join(" and ", predicates));
+	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("select count(1) from %s where %s", String.join(", ", tables), String.join(" and ", predicates)) : "select 1";
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
