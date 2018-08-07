@@ -9,8 +9,8 @@
     <servlet-name>ProtonServlet</servlet-name>
     <servlet-class>org.protonchamber.ProtonServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
-    <init-param><param-name>dsname</param-name><param-value>jdbc/ProtonDB</param-value></init-param>
-    <init-param><param-name>CATALOG</param-name><param-value>dventimi</param-value></init-param>
+    <init-param><param-name>dsname</param-name><param-value>jdbc/StudyBlue</param-value></init-param>
+    <init-param><param-name>CATALOG</param-name><param-value>studyblue</param-value></init-param>
     <init-param><param-name>SCHEMA_PATTERN</param-name><param-value>public</param-value></init-param>
   </servlet>
 
