@@ -65,9 +65,12 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 			     .getValueAsString());}
 	    tables.add(es.getName());}
 	String select = String.format("select %s.* from %s where %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates));
+	String count = String.format("select count(1) from %s where %s", String.join(", ", tables), String.join(" and ", predicates));
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
-	     ResultSet r = s.executeQuery(select)) {
+	     Statement t = c.createStatement();
+	     ResultSet r = s.executeQuery(select);
+	     ResultSet x = t.executeQuery(count)) {
 	    EntityCollection ec = new EntityCollection();
 	    while (r.next()) {
 		Entity e = new Entity();
@@ -79,7 +82,8 @@ public class ProtonEntityCollectionProcessor implements EntityCollectionProcesso
 			.getKind()==EdmTypeKind.PRIMITIVE)
 			e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));}
 		ec.getEntities().add(e);}
-	    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getName()).contextURL(ContextURL.with().entitySet(es).build()).build()).getContent());
+	    while (x.next()) ec.setCount(x.getInt(1));
+	    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getName()).contextURL(ContextURL.with().entitySet(es).build()).count(uriInfo.getCountOption()).build()).getContent());
 	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 	    return;}
