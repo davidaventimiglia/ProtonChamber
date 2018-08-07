@@ -36,7 +36,7 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)/person
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(15)
 
 # insert a person
-POST http://localhost:8080/ProtonChamber/ProtonService.svc/person?odata-debug=json
+POST http://localhost:8080/ProtonChamber/ProtonService.svc/person
 Content-Type: application/json
 
 {
