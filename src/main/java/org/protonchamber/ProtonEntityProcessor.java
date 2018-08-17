@@ -64,6 +64,8 @@ public class ProtonEntityProcessor implements EntityProcessor {
 
     @Override
     public void createEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException, SerializerException {
+	if (uriInfo.getUriResourceParts().isEmpty()) throw new IllegalStateException("No URI Resource parts!");
+	if (uriInfo.getUriResourceParts().get(0).getKind()!=UriResourceKind.entitySet) throw new IllegalStateException("Not an Entity Set!");
 	UriResourceEntitySet es = (UriResourceEntitySet)uriInfo.getUriResourceParts().get(0);
 	List<String> names = new ArrayList<>(); List<Object> values = new ArrayList<>(); List<String> placeholders = new ArrayList<>(names);
 	Entity e = odata.createDeserializer(requestFormat).entity(request.getBody(), es.getEntityType()).getEntity();
@@ -71,10 +73,9 @@ public class ProtonEntityProcessor implements EntityProcessor {
 	placeholders.replaceAll((x)->"?");
 	String insert = String.format("insert into %s (%s) values (%s)", es.getEntitySet().getName(), String.join(",", names), String.join(",", placeholders));
 	try (Connection c = ds.getConnection();
-	     Statement s = c.createStatement();
 	     PreparedStatement p = decorate(c.prepareStatement(insert, es.getEntityType().getPropertyNames().toArray(new String[0])), names, values, es.getEntityType());
 	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(p.executeUpdate());
-	     ResultSet r = s.getGeneratedKeys()) {
+	     ResultSet r = p.getGeneratedKeys()) {
 	    while (r.next())
 		for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
 		    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
