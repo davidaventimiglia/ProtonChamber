@@ -1,0 +1,25 @@
+# -*- mode: org; -*-
+
+#+STARTUP: hidestars
+#+STARTUP: odd
+
+* DONE Create a read service
+* DONE Extend the read service
+  - read a collection of data
+* TODO Add write support to the service
+  - read a single entity
+  - read a single property
+* TODO Add navigation support to the service
+  - one-to-one navigation
+  - one-to-many navigation
+* TODO Add system query options support to the service
+*** TODO Add system query options support ($top, $count and $skip) to the service
+*** TODO Add system query options support ($select and $expand) to the service
+*** TODO Add system query options support ($orderby) to the service
+*** TODO Add system query options support ($filter) to the service
+* TODO Add Action Imports and Function Imports to the service
+* TODO Add Media entities to the service
+* TODO Add Batch request support to the service
+* TODO Add "deep insert" handling to the service
+* TODO Add "Bound Actions" to the service
+* TODO Enable Entity Collection streaming support
