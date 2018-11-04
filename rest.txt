@@ -1,11 +1,11 @@
 # -*- mode: restclient; -*-
 
-# # undeploy
-# GET http://localhost:8080/manager/text/undeploy?path=/ProtonChamber
-# Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
+# undeploy
+GET http://localhost:8080/manager/text/undeploy?path=/ProtonChamber
+Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
 
 # deploy
-GET http://localhost:8080/manager/text/deploy?war=file:/home/dventimi/work/Bitbucket/protonchamber/target/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
+GET http://localhost:8080/manager/text/deploy?war=file:/home/dventimi/work/Bitbucket/NeptuneStation/AtomicFramework/protonchamber/target/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
 Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
 
 # get metadata
@@ -33,6 +33,9 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$skip=3
 # get the person list with $top=n
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$top=2
 
+# get a particular person
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')?odata-debug=json
+
 # get the address list
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/address
 
@@ -40,13 +43,13 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/address
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)
 
 # navigate to person->address
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(15)/address
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')/person_address(1)/address/address?odata-debug=json
 
 # navigate from address->person
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)/person
 
 # get an individual person
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(15)
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(62a3ad87-a5b7-456d-9256-8f6850715433)
 
 # update a person
 PUT http://localhost:8080/ProtonChamber/ProtonService.svc/person(11)
