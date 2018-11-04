@@ -36,8 +36,7 @@ public class ProtonServlet extends HttpServlet {
 	    tableNamePattern = config.getInitParameter("TABLE_NAME_PATTERN");
 	    columnNamePattern = config.getInitParameter("COLUMN_NAME_PATTERN");
 	    handler = odata.createHandler(odata.createServiceMetadata(new ProtonEdmProvider(this, ds, catalog, schemaPattern, tableNamePattern, columnNamePattern), new ArrayList<EdmxReference>()));
-	    handler.register(new ProtonEntityCollectionProcessor(ds, this));
-	    handler.register(new ProtonEntityProcessor(ds, this));
+	    handler.register(new ProtonProcessor(ds, this));
 	    handler.register(new DefaultDebugSupport());}
 	catch (Exception e) {throw new ServletException(e);}}
 	    

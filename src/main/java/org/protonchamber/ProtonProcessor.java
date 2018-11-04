@@ -18,7 +18,7 @@ import org.apache.olingo.server.api.processor.*;
 import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
 
-public class ProtonEntityProcessor implements EntityProcessor {
+public class ProtonProcessor implements EntityProcessor, EntityCollectionProcessor {
 
     // nested types
 
@@ -38,7 +38,7 @@ public class ProtonEntityProcessor implements EntityProcessor {
 
     // external API
 
-    public ProtonEntityProcessor (DataSource ds, GenericServlet servlet) {
+    public ProtonProcessor (DataSource ds, GenericServlet servlet) {
 	this.ds = ds;
 	this.servlet = servlet;}
 
@@ -56,7 +56,7 @@ public class ProtonEntityProcessor implements EntityProcessor {
 		    p.setString(i, "" + values.get(i-1));
 	return
 	    (PreparedStatement)
-	    Proxy.newProxyInstance(ProtonEntityProcessor.class.getClassLoader(),
+	    Proxy.newProxyInstance(ProtonProcessor.class.getClassLoader(),
 				   new Class[]{PreparedStatement.class},
 				   new InvocationHandler () {
 				       @Override public Object invoke (Object proxy, Method method, Object[] args) throws Throwable {
@@ -110,6 +110,7 @@ public class ProtonEntityProcessor implements EntityProcessor {
 	catch (Exception ex) {
 	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), update), 500, Locale.US);}}
 
+    @Override
     public void readEntityCollection (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 	List<String> tables = new ArrayList<>();
 	List<String> predicates = new ArrayList<>(); predicates.add("true");
