@@ -11,14 +11,21 @@ import org.apache.olingo.commons.api.data.*;
 import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.constants.*;
 import org.apache.olingo.commons.api.format.*;
+import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.*;
 import org.apache.olingo.server.api.*;
+import org.apache.olingo.server.api.ODataApplicationException;
+import org.apache.olingo.server.api.ODataLibraryException;
+import org.apache.olingo.server.api.ODataRequest;
+import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.deserializer.*;
 import org.apache.olingo.server.api.processor.*;
+import org.apache.olingo.server.api.processor.PrimitiveProcessor;
 import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
+import org.apache.olingo.server.api.uri.UriInfo;
 
-public class ProtonProcessor implements EntityProcessor, EntityCollectionProcessor {
+public class ProtonProcessor implements EntityProcessor, EntityCollectionProcessor, PrimitiveProcessor {
 
     // nested types
 
@@ -121,7 +128,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	    if (current instanceof UriResourceEntitySet) {
 		ues = (UriResourceEntitySet)current;
 		es = ues.getEntitySet();
-		for (UriParameter p : ues.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("'%s'", p.getText())));}
+		for (UriParameter p : ues.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));}
 	    if (current instanceof UriResourceNavigation) {
 		nav = (UriResourceNavigation)current;
 		es = (EdmEntitySet)
@@ -129,7 +136,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 		     .getRelatedBindingTarget(nav
 					      .getProperty()
 					      .getName()));
-		for (UriParameter p : nav.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("'%s'", p.getText())));
+		for (UriParameter p : nav.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));
 		for (EdmAnnotation a : nav.getProperty().getAnnotations())
 		    predicates
 			.add(a
@@ -179,7 +186,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	for (Property p : e.getProperties()) pairs.put(p.getName(), ""+p.getValue());
 	List<String> sqlPredicates = new ArrayList<>();
 	sqlPredicates.add("true");
-	for (UriParameter p : es.getKeyPredicates()) sqlPredicates.add(String.format("%s=%s", p.getName(), String.format("'%s'", p.getText())));
+	for (UriParameter p : es.getKeyPredicates()) sqlPredicates.add(String.format("%s=%s", p.getName(), String.format("%s", p.getText())));
 	String select = String.format("select * from %s where %s", es.getEntitySet().getName(), String.join(" and ", sqlPredicates));
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
@@ -213,4 +220,16 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	    return;}
 	catch (Exception ex) {
-	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), delete), 500, Locale.US);}}}
+	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), delete), 500, Locale.US);}}
+
+    @Override
+    public void deletePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
+    }
+
+    @Override
+    public void readPrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat) throws ODataApplicationException, ODataLibraryException {
+    }
+
+    @Override
+    public void updatePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+    }}

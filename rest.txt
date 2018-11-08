@@ -22,7 +22,7 @@ Content-Type: application/json
 }
 
 # get the person list
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person_address
 
 # get the person list with $count=true
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$count=true
@@ -45,6 +45,9 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)
 # navigate to person->address
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')/person_address(1)/address/address?odata-debug=json
 
+# 
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')/person_address(1)/address?odata-debug=json
+
 # navigate from address->person
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)/person
 
@@ -52,7 +55,7 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)/person
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(62a3ad87-a5b7-456d-9256-8f6850715433)
 
 # update a person
-PUT http://localhost:8080/ProtonChamber/ProtonService.svc/person(11)
+PUT http://localhost:8080/ProtonChamber/ProtonService.svc/person(11)?odata-debug=json
 Content-Type: application/json
 
 {
