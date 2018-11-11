@@ -46,7 +46,7 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')/person_address(1)/address/address?odata-debug=json
 
 # 
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')/person_address(1)/address?odata-debug=json
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')/person_address(1)
 
 # navigate from address->person
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)/person
