@@ -8,6 +8,7 @@ import java.util.*;
 import javax.servlet.*;
 import javax.sql.*;
 import org.apache.olingo.commons.api.data.*;
+import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.constants.*;
@@ -76,63 +77,13 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 
     @Override
     public void readEntityCollection (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-	List<String> tables = new ArrayList<>();
-	List<String> predicates = new ArrayList<>(); predicates.add("true");
-	EdmEntitySet es = null;
-	UriResourceEntitySet ues = null;
-	UriResourceNavigation nav = null;
-	for (UriResource current : uriInfo.getUriResourceParts()) {
-	    if (current instanceof UriResourceEntitySet) {
-		ues = (UriResourceEntitySet)current;
-		es = ues.getEntitySet();
-		for (UriParameter p : ues.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));}
-	    if (current instanceof UriResourceNavigation) {
-		nav = (UriResourceNavigation)current;
-		es = (EdmEntitySet)
-		    es.getRelatedBindingTarget(nav
-					       .getProperty()
-					       .getName());
-		for (UriParameter p : nav.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));
-		for (EdmAnnotation a : nav.getProperty().getAnnotations())
-		    predicates
-			.add(a
-			     .getExpression()
-			     .asConstant()
-			     .getValueAsString());}
-	    tables.add(es.getName());}
-	Integer skip = uriInfo.getSkipOption()!=null ? uriInfo.getSkipOption().getValue() : null;
-	String limit = uriInfo.getTopOption()!=null ? String.format("limit %s", uriInfo.getTopOption().getValue()) : "limit 10";
-	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("select count(1) from %s where %s", String.join(", ", tables), String.join(" and ", predicates)) : "select 1";
-	String select = String.format("select %s.* from %s where %s %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates), limit);
-	try (Connection c = ds.getConnection();
-	     Statement s = c.createStatement();
-	     Statement t = c.createStatement();
-	     ResultSet r = s.executeQuery(select);
-	     ResultSet x = t.executeQuery(count)) {
-	    EntityCollection ec = new EntityCollection();
-	    while (r.next()) {
-		if (skip!=null && skip-->0) continue;
-		Entity e = new Entity();
-		for (int i=1; i<=r.getMetaData().getColumnCount(); i++) {
-		    if (es
-			.getEntityType()
-			.getProperty(r.getMetaData().getColumnName(i))
-			.getType()
-			.getKind()==EdmTypeKind.PRIMITIVE)
-			e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));}
-		ec.getEntities().add(e);}
-	    while (x.next()) ec.setCount(x.getInt(1));
-	    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getName()).contextURL(ContextURL.with().entitySet(es).build()).count(uriInfo.getCountOption()).build()).getContent());
-	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
-	    return;}
-	catch (SQLException ex) {
-	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.toString(), select), 500, Locale.US);}
-	catch (Exception ex) {
-	    throw ex;}}
+	response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+	response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	EdmEntitySet es = getEntitySet(uriInfo);
+	EntityCollection ec = getEntityCollection(uriInfo);
+	response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getName()).contextURL(ContextURL.with().entitySet(es).build()).count(uriInfo.getCountOption()).build()).getContent());}
 
-    @Override
-    public void readEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+    private EntityCollection getEntityCollection (UriInfo uriInfo) throws ODataApplicationException {
 	EdmEntitySet es = getEntitySet(uriInfo);
 	List<String> tables = getTables(uriInfo);
 	List<String> key = getKey(uriInfo);
@@ -158,16 +109,21 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 			e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));}
 		ec.getEntities().add(e);}
 	    while (x.next()) ec.setCount(x.getInt(1));
-	    for (Entity e : ec.getEntities()) {
-		response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, es.getEntityType(), e, EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(es).build()).build()).getContent());
-		response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());}
-	    return;}
+	    return ec;}
 	catch (SQLException ex) {
 	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.toString(), select), 500, Locale.US);}
 	catch (Exception ex) {
 	    throw ex;}}
-    
+
+    @Override
+    public void readEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+	response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+	response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	EdmEntitySet es = getEntitySet(uriInfo);
+	EntityCollection ec = getEntityCollection(uriInfo);
+	for (Entity e : ec.getEntities())
+	    response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, es.getEntityType(), e, EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(es).build()).build()).getContent());}
+
     @Override
     public void deleteEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
 	List<String> tables = new ArrayList<>();
@@ -291,6 +247,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 
     private List<String> getKey (UriInfoResource resource) {
 	ArrayList<String> predicates = new ArrayList<>();
+	predicates.add("true");
 	for (UriResource p : resource.getUriResourceParts())
 	    if (p instanceof UriResourceEntitySet)
 		for (UriParameter x : ((UriResourceEntitySet)p).getKeyPredicates())
@@ -298,7 +255,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	    else if (p instanceof UriResourceNavigation)
 		for (UriParameter x : ((UriResourceNavigation)p).getKeyPredicates())
 		    predicates.add(String.format("%s.%s=%s", p.getSegmentValue(), x.getName(), x.getText()));
-	return predicates.isEmpty() ? getColumns(resource) : predicates;}
+	return predicates;}
 
     private List<String> getPredicates (UriInfoResource resource) {
 	return new ArrayList<>();
