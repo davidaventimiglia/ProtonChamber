@@ -9,6 +9,7 @@ import javax.servlet.*;
 import javax.sql.*;
 import org.apache.olingo.commons.api.data.*;
 import org.apache.olingo.commons.api.edm.*;
+import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.constants.*;
 import org.apache.olingo.commons.api.format.*;
 import org.apache.olingo.commons.api.format.ContentType;
@@ -24,6 +25,10 @@ import org.apache.olingo.server.api.processor.PrimitiveProcessor;
 import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
 import org.apache.olingo.server.api.uri.UriInfo;
+import org.apache.olingo.server.api.uri.UriInfoResource;
+import org.apache.olingo.server.api.uri.UriInfoResource;
+import org.apache.olingo.server.api.uri.UriInfoResource;
+import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 
 public class ProtonProcessor implements EntityProcessor, EntityCollectionProcessor, PrimitiveProcessor {
 
@@ -128,34 +133,13 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 
     @Override
     public void readEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-	List<String> tables = new ArrayList<>();
-	List<String> predicates = new ArrayList<>(); predicates.add("true");
-	EdmEntitySet es = null;
-	UriResourceEntitySet ues = null;
-	UriResourceNavigation nav = null;
-	for (UriResource current : uriInfo.getUriResourceParts()) {
-	    if (current instanceof UriResourceEntitySet) {
-		ues = (UriResourceEntitySet)current;
-		es = ues.getEntitySet();
-		for (UriParameter p : ues.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));}
-	    if (current instanceof UriResourceNavigation) {
-		nav = (UriResourceNavigation)current;
-		es = (EdmEntitySet)
-		    es.getRelatedBindingTarget(nav
-					       .getProperty()
-					       .getName());
-		for (UriParameter p : nav.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));
-		for (EdmAnnotation a : nav.getProperty().getAnnotations())
-		    predicates
-			.add(a
-			     .getExpression()
-			     .asConstant()
-			     .getValueAsString());}
-	    tables.add(es.getName());}
-	Integer skip = uriInfo.getSkipOption()!=null ? uriInfo.getSkipOption().getValue() : null;
-	String limit = uriInfo.getTopOption()!=null ? String.format("limit %s", uriInfo.getTopOption().getValue()) : "limit 10";
-	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("select count(1) from %s where %s", String.join(", ", tables), String.join(" and ", predicates)) : "select 1";
-	String select = String.format("select %s.* from %s where %s %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates), limit);
+	EdmEntitySet es = getEntitySet(uriInfo);
+	List<String> tables = getTables(uriInfo);
+	List<String> key = getKey(uriInfo);
+	int skip = getSkip(uriInfo);
+	String limit = getLimit(uriInfo);
+	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("with t as (select count(1) from %s where %s) select * from t", String.join(", ", tables), String.join(" and ", key)) : "select 1";
+	String select = String.format("with t as (select %s.* from %s where %s %s) select * from t", tables.get(tables.size()-1), String.join(", ", tables), String.join(" and ", key), limit);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
@@ -163,7 +147,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	     ResultSet x = t.executeQuery(count)) {
 	    EntityCollection ec = new EntityCollection();
 	    while (r.next()) {
-		if (skip!=null && skip-->0) continue;
+		if (skip-->0) continue;
 		Entity e = new Entity();
 		for (int i=1; i<=r.getMetaData().getColumnCount(); i++) {
 		    if (es
@@ -281,4 +265,47 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 
     @Override
     public void updatePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-    }}
+    }
+
+    private EdmEntitySet getEntitySet (UriInfoResource resource) {
+	EdmEntitySet es = null;
+	for (UriResource p : resource.getUriResourceParts())
+	    if (p instanceof UriResourceEntitySet)
+		es = ((UriResourceEntitySet)p).getEntitySet();
+	    else if (p instanceof UriResourceNavigation)
+		es = (EdmEntitySet)
+		    es.getRelatedBindingTarget(((UriResourceNavigation)p)
+								       .getProperty()
+								       .getName());
+	    else throw new IllegalStateException("No EntitySet!");
+	return es;}
+
+    private List<String> getTables (UriInfoResource resource) {
+	ArrayList<String> tables = new ArrayList<>();
+	for (UriResource p : resource.getUriResourceParts()) tables.add(p.getSegmentValue());
+	return tables;}
+
+    private List<String> getColumns (UriInfoResource resource) {
+	return new ArrayList<>();
+    }
+
+    private List<String> getKey (UriInfoResource resource) {
+	ArrayList<String> predicates = new ArrayList<>();
+	for (UriResource p : resource.getUriResourceParts())
+	    if (p instanceof UriResourceEntitySet)
+		for (UriParameter x : ((UriResourceEntitySet)p).getKeyPredicates())
+		    predicates.add(String.format("%s.%s=%s", p.getSegmentValue(), x.getName(), x.getText()));
+	    else if (p instanceof UriResourceNavigation)
+		for (UriParameter x : ((UriResourceNavigation)p).getKeyPredicates())
+		    predicates.add(String.format("%s.%s=%s", p.getSegmentValue(), x.getName(), x.getText()));
+	return predicates.isEmpty() ? getColumns(resource) : predicates;}
+
+    private List<String> getPredicates (UriInfoResource resource) {
+	return new ArrayList<>();
+    }
+
+    private String getLimit (UriInfoResource resource) {
+	return resource.getTopOption()!=null ? String.format("limit %s", resource.getTopOption().getValue()) : "limit 10";}
+
+    private int getSkip (UriInfoResource resource) {
+	return resource.getSkipOption()!=null ? resource.getSkipOption().getValue() : 0;}}
