@@ -8,28 +8,16 @@ import java.util.*;
 import javax.servlet.*;
 import javax.sql.*;
 import org.apache.olingo.commons.api.data.*;
-import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.edm.*;
-import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.constants.*;
 import org.apache.olingo.commons.api.format.*;
-import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.*;
 import org.apache.olingo.server.api.*;
-import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.ODataLibraryException;
-import org.apache.olingo.server.api.ODataRequest;
-import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.deserializer.*;
 import org.apache.olingo.server.api.processor.*;
-import org.apache.olingo.server.api.processor.PrimitiveProcessor;
 import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
-import org.apache.olingo.server.api.uri.UriInfo;
-import org.apache.olingo.server.api.uri.UriInfoResource;
-import org.apache.olingo.server.api.uri.UriInfoResource;
-import org.apache.olingo.server.api.uri.UriInfoResource;
-import org.apache.olingo.server.api.uri.UriResourceEntitySet;
+import org.stringtemplate.v4.*;
 
 public class ProtonProcessor implements EntityProcessor, EntityCollectionProcessor, PrimitiveProcessor {
 
@@ -83,78 +71,27 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	EntityCollection ec = getEntityCollection(uriInfo);
 	response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getName()).contextURL(ContextURL.with().entitySet(es).build()).count(uriInfo.getCountOption()).build()).getContent());}
 
-    private EntityCollection getEntityCollection (UriInfo uriInfo) throws ODataApplicationException {
-	EdmEntitySet es = getEntitySet(uriInfo);
-	List<String> tables = getTables(uriInfo);
-	List<String> key = getKey(uriInfo);
-	int skip = getSkip(uriInfo);
-	String limit = getLimit(uriInfo);
-	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("with t as (select count(1) from %s where %s) select * from t", String.join(", ", tables), String.join(" and ", key)) : "select 1";
-	String select = String.format("with t as (select %s.* from %s where %s %s) select * from t", tables.get(tables.size()-1), String.join(", ", tables), String.join(" and ", key), limit);
-	try (Connection c = ds.getConnection();
-	     Statement s = c.createStatement();
-	     Statement t = c.createStatement();
-	     ResultSet r = s.executeQuery(select);
-	     ResultSet x = t.executeQuery(count)) {
-	    EntityCollection ec = new EntityCollection();
-	    while (r.next()) {
-		if (skip-->0) continue;
-		Entity e = new Entity();
-		for (int i=1; i<=r.getMetaData().getColumnCount(); i++) {
-		    if (es
-			.getEntityType()
-			.getProperty(r.getMetaData().getColumnName(i))
-			.getType()
-			.getKind()==EdmTypeKind.PRIMITIVE)
-			e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));}
-		ec.getEntities().add(e);}
-	    while (x.next()) ec.setCount(x.getInt(1));
-	    return ec;}
-	catch (SQLException ex) {
-	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.toString(), select), 500, Locale.US);}
-	catch (Exception ex) {
-	    throw ex;}}
-
     @Override
     public void readEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 	response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 	response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 	EdmEntitySet es = getEntitySet(uriInfo);
 	EntityCollection ec = getEntityCollection(uriInfo);
-	for (Entity e : ec.getEntities())
-	    response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, es.getEntityType(), e, EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(es).build()).build()).getContent());}
+	for (Entity e : ec.getEntities()) response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, es.getEntityType(), e, EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(es).build()).build()).getContent());}
 
     @Override
     public void deleteEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
-	List<String> tables = new ArrayList<>();
-	List<String> predicates = new ArrayList<>(); predicates.add("true");
-	EdmEntitySet es = null;
-	UriResourceEntitySet ues = null;
-	UriResourceNavigation nav = null;
-	for (UriResource current : uriInfo.getUriResourceParts()) {
-	    if (current instanceof UriResourceEntitySet) {
-		ues = (UriResourceEntitySet)current;
-		es = ues.getEntitySet();
-		for (UriParameter p : ues.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));}
-	    if (current instanceof UriResourceNavigation) {
-		nav = (UriResourceNavigation)current;
-		es = (EdmEntitySet)
-		    es.getRelatedBindingTarget(nav
-					       .getProperty()
-					       .getName());
-		for (UriParameter p : nav.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));
-		for (EdmAnnotation a : nav.getProperty().getAnnotations())
-		    predicates
-			.add(a
-			     .getExpression()
-			     .asConstant()
-			     .getValueAsString());}
-	    tables.add(es.getName());}
-	Integer skip = uriInfo.getSkipOption()!=null ? uriInfo.getSkipOption().getValue() : null;
-	String limit = uriInfo.getTopOption()!=null ? String.format("limit %s", uriInfo.getTopOption().getValue()) : "limit 10";
-	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("select count(1) from %s where %s", String.join(", ", tables), String.join(" and ", predicates)) : "select 1";
-	String select = String.format("select %s.* from %s where %s %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates), limit);
-    	String delete = String.format("delete from %s where true and %s", es.getName(), String.join("and", predicates));
+	ST hello = new ST("Hello, <name>!");
+	hello.add("name", "World");
+	String output = hello.render();
+	System.out.println(output);
+	EdmEntitySet es = getEntitySet(uriInfo);
+	List<String> tables = getTables(uriInfo);
+	List<String> keys = getKeys(uriInfo);
+	int skip = getSkip(uriInfo);
+	String limit = getLimit(uriInfo);
+	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("with t as (select count(1) from %s where %s) select * from t", String.join(", ", tables), String.join(" and ", keys)) : "select 1";
+	String delete = "with t as (select %s from %s where %s.%s = %s) delete from %s where person_%s.id in (select * from t);";
     	try (Connection c = ds.getConnection();
     	     Statement s = c.createStatement();
     	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(delete))) {
@@ -162,6 +99,45 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
     	    return;}
     	catch (Exception ex) {
     	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), delete), 500, Locale.US);}}
+
+    // @Override
+    // public void deleteEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
+    // 	List<String> tables = new ArrayList<>();
+    // 	List<String> predicates = new ArrayList<>(); predicates.add("true");
+    // 	EdmEntitySet es = null;
+    // 	UriResourceEntitySet ues = null;
+    // 	UriResourceNavigation nav = null;
+    // 	for (UriResource current : uriInfo.getUriResourceParts()) {
+    // 	    if (current instanceof UriResourceEntitySet) {
+    // 		ues = (UriResourceEntitySet)current;
+    // 		es = ues.getEntitySet();
+    // 		for (UriParameter p : ues.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));}
+    // 	    if (current instanceof UriResourceNavigation) {
+    // 		nav = (UriResourceNavigation)current;
+    // 		es = (EdmEntitySet)
+    // 		    es.getRelatedBindingTarget(nav
+    // 					       .getProperty()
+    // 					       .getName());
+    // 		for (UriParameter p : nav.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));
+    // 		for (EdmAnnotation a : nav.getProperty().getAnnotations())
+    // 		    predicates
+    // 			.add(a
+    // 			     .getExpression()
+    // 			     .asConstant()
+    // 			     .getValueAsString());}
+    // 	    tables.add(es.getName());}
+    // 	Integer skip = uriInfo.getSkipOption()!=null ? uriInfo.getSkipOption().getValue() : null;
+    // 	String limit = uriInfo.getTopOption()!=null ? String.format("limit %s", uriInfo.getTopOption().getValue()) : "limit 10";
+    // 	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("select count(1) from %s where %s", String.join(", ", tables), String.join(" and ", predicates)) : "select 1";
+    // 	String select = String.format("select %s.* from %s where %s %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates), limit);
+    // 	String delete = String.format("delete from %s where true and %s", es.getName(), String.join("and", predicates));
+    // 	try (Connection c = ds.getConnection();
+    // 	     Statement s = c.createStatement();
+    // 	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(delete))) {
+    // 	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
+    // 	    return;}
+    // 	catch (Exception ex) {
+    // 	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), delete), 500, Locale.US);}}
 
     @Override
     public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException {
@@ -223,6 +199,45 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
     public void updatePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
     }
 
+    private EntityCollection getEntityCollection (UriInfo uriInfo) throws ODataApplicationException {
+	EdmEntitySet es = getEntitySet(uriInfo);
+	List<String> tables = getTables(uriInfo);
+	List<String> keys = getKeys(uriInfo);
+	int skip = getSkip(uriInfo);
+	String limit = getLimit(uriInfo);
+	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("with t as (select count(1) from %s where %s) select * from t", String.join(", ", tables), String.join(" and ", keys)) : "select 1";
+	String select = String.format("with t as (select %s.* from %s where %s %s) select * from t", tables.get(tables.size()-1), String.join(", ", tables), String.join(" and ", keys), limit);
+	STGroup g = new STGroupFile("test.stg");
+	ST st = g.getInstanceOf("select");
+	st.add("table", tables.get(tables.size()-1));
+	st.add("tables", String.join(", ", tables));
+	// st.add("keys", String.join(" and ", keys));
+	// st.add("limit", limit);
+	// select = st.render();
+	try (Connection c = ds.getConnection();
+	     Statement s = c.createStatement();
+	     Statement t = c.createStatement();
+	     ResultSet r = s.executeQuery(select);
+	     ResultSet x = t.executeQuery(count)) {
+	    EntityCollection ec = new EntityCollection();
+	    while (r.next()) {
+		if (skip-->0) continue;
+		Entity e = new Entity();
+		for (int i=1; i<=r.getMetaData().getColumnCount(); i++) {
+		    if (es
+			.getEntityType()
+			.getProperty(r.getMetaData().getColumnName(i))
+			.getType()
+			.getKind()==EdmTypeKind.PRIMITIVE)
+			e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));}
+		ec.getEntities().add(e);}
+	    while (x.next()) ec.setCount(x.getInt(1));
+	    return ec;}
+	catch (SQLException ex) {
+	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.toString(), select), 500, Locale.US);}
+	catch (Exception ex) {
+	    throw ex;}}
+
     private EdmEntitySet getEntitySet (UriInfoResource resource) {
 	EdmEntitySet es = null;
 	for (UriResource p : resource.getUriResourceParts())
@@ -245,7 +260,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	return new ArrayList<>();
     }
 
-    private List<String> getKey (UriInfoResource resource) {
+    private List<String> getKeys (UriInfoResource resource) {
 	ArrayList<String> predicates = new ArrayList<>();
 	predicates.add("true");
 	for (UriResource p : resource.getUriResourceParts())
