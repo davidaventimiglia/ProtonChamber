@@ -2,11 +2,15 @@
 
 # undeploy
 GET http://localhost:8080/manager/text/undeploy?path=/ProtonChamber
-Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
+Authorization: Basic YWRtaW46YWRtaW4=
 
 # deploy
 GET http://localhost:8080/manager/text/deploy?war=file:/home/dventimi/work/Bitbucket/NeptuneStation/AtomicFramework/protonchamber/target/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
-Authorization: Basic dG9tY2F0LWd1aTpwYXNzd29yZA==
+Authorization: Basic YWRtaW46YWRtaW4=
+
+# list deployed apps
+GET http://localhost:8080/manager/text/list
+Authorization: Basic YWRtaW46YWRtaW4=
 
 # get metadata
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
