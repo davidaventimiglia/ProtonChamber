@@ -209,32 +209,71 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	@Override
 	public String toString () {return st.render();}}
 
+    class Bar {
+	UriInfoResource resource;
+	Bar (UriInfoResource resource) {
+	    this.resource = resource;}
+
+	public EdmEntitySet getEntitySet () {
+	    EdmEntitySet es = null;
+	    for (UriResource p : resource.getUriResourceParts())
+		if (p instanceof UriResourceEntitySet)
+		    es = ((UriResourceEntitySet)p).getEntitySet();
+		else if (p instanceof UriResourceNavigation)
+		    es = (EdmEntitySet)
+			es.getRelatedBindingTarget(((UriResourceNavigation)p)
+						   .getProperty()
+						   .getName());
+		else throw new IllegalStateException("No EntitySet!");
+	    return es;}
+
+	public List<String> getTables () {
+	    ArrayList<String> tables = new ArrayList<>();
+	    for (UriResource p : resource.getUriResourceParts()) tables.add(p.getSegmentValue());
+	    return tables;}
+
+	public String getTable () {
+	    List<String> tables = getTables();
+	    return tables.get(tables.size()-1);}
+
+	public List<String> getColumns () {
+	    return new ArrayList<>();}
+
+	public List<String> getKeys () {
+	    ArrayList<String> predicates = new ArrayList<>();
+	    predicates.add("true");
+	    for (UriResource p : resource.getUriResourceParts())
+		if (p instanceof UriResourceEntitySet)
+		    for (UriParameter x : ((UriResourceEntitySet)p).getKeyPredicates())
+			predicates.add(String.format("%s.%s=%s", p.getSegmentValue(), x.getName(), x.getText()));
+		else if (p instanceof UriResourceNavigation)
+		    for (UriParameter x : ((UriResourceNavigation)p).getKeyPredicates())
+			predicates.add(String.format("%s.%s=%s", p.getSegmentValue(), x.getName(), x.getText()));
+	    return predicates;}
+
+	public List<String> getPredicates () {
+	    return new ArrayList<>();}
+
+	public String getLimit () {
+	    return resource.getTopOption()!=null ? String.format("limit %s", resource.getTopOption().getValue()) : "limit 10";}
+
+	public int getSkip () {
+	    return resource.getSkipOption()!=null ? resource.getSkipOption().getValue() : 0;}}
+
     private EntityCollection getEntityCollection (UriInfo uriInfo) throws ODataApplicationException {
 	EdmEntitySet es = getEntitySet(uriInfo);
-	List<String> tables = getTables(uriInfo);
-	List<String> keys = getKeys(uriInfo);
-	String limit = getLimit(uriInfo);
 	int skip = getSkip(uriInfo);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-	     ResultSet r = s.executeQuery("" + new Foo() {
-	     	     {
-	     		 STGroup g = getSTGroup(c);
-	     		 st = g.getInstanceOf("getEntityCollection_select");
-	     		 st.add("table", tables.get(tables.size()-1));
-	     		 st.add("tables", String.join(", ", tables));
-	     		 st.add("keys", String.join(" and ", keys));
-	     		 st.add("limit", limit);}});
-	     ResultSet x = t.executeQuery("" + new Foo() {
-	     	     {
-	     		 STGroup g = getSTGroup(c);
-	     		 st = g.getInstanceOf("getEntityCollection_count");
-	     		 st.add("tables", String.join(", ", tables));
-	     		 st.add("keys", String.join(" and ", keys));}
-	     	     @Override
-	     	     public String toString () {
-			 return uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? st.render() : "select 1";}})) {
+	     ResultSet r = s.executeQuery("" + new Foo() {{
+		 STGroup g = getSTGroup(c);
+		 st = g.getInstanceOf("getEntityCollection_select");
+		 st.add("info", new Bar(uriInfo));}});
+	     ResultSet x = t.executeQuery("" + new Foo() {{
+		 STGroup g = getSTGroup(c);
+		 st = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? g.getInstanceOf("getEntityCollection_count_n") : g.getInstanceOf("getEntityCollection_count_1");
+		 st.add("info", new Bar(uriInfo));}})) {
 	    EntityCollection ec = new EntityCollection();
 	    while (r.next()) {
 		if (skip-->0) continue;
@@ -271,8 +310,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	return tables;}
 
     private List<String> getColumns (UriInfoResource resource) {
-	return new ArrayList<>();
-    }
+	return new ArrayList<>();}
 
     private List<String> getKeys (UriInfoResource resource) {
 	ArrayList<String> predicates = new ArrayList<>();
@@ -287,8 +325,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	return predicates;}
 
     private List<String> getPredicates (UriInfoResource resource) {
-	return new ArrayList<>();
-    }
+	return new ArrayList<>();}
 
     private String getLimit (UriInfoResource resource) {
 	return resource.getTopOption()!=null ? String.format("limit %s", resource.getTopOption().getValue()) : "limit 10";}

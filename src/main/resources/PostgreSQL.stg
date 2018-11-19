@@ -1,3 +1,11 @@
-getEntityCollection_select(table, tables, keys, limit) ::= "with t as (select <table>.* from <tables> where <keys> <limit>) select * from t"
+getEntityCollection_select(info) ::= <%
+with t as (select <info.table>.* from <info.tables> where <info.keys> <info.limit>) select * from t
+%>
 
-getEntityCollection_count(tables, keys) ::= "with t as (select count(1) from <tables> where <keys>) select * from t"
+getEntityCollection_count_n(info) ::= <%
+with t as (select count(1) from <info.tables> where <info.keys>) select * from t
+%>
+
+getEntityCollection_count_1(info) ::= <%
+select 1
+%>
