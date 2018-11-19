@@ -1,1 +1,1 @@
-select(table, tables, keys, limit) :: = "with t as (select <table>.* from <tables> where <keys> <limit>) select * from t"
+select(table, tables, keys, limit) ::= "with t as (select <table>.* from <tables> where <keys> <limit>) select * from t"

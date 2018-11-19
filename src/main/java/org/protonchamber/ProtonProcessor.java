@@ -5,6 +5,7 @@ import java.lang.reflect.*;
 import java.sql.*;
 import java.time.*;
 import java.util.*;
+import javax.crypto.spec.OAEPParameterSpec;
 import javax.servlet.*;
 import javax.sql.*;
 import org.apache.olingo.commons.api.data.*;
@@ -199,26 +200,41 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
     public void updatePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
     }
 
+    abstract class Foo {
+	ST st;
+	STGroup getSTGroup (Connection c) throws SQLException {
+	    STGroup g = new STGroupFile(String.format("%s.stg", c.getMetaData().getDatabaseProductName()));
+	    if (g==null) g = new STGroupFile("default.stg");
+	    return g;}
+	@Override
+	public String toString () {return st.render();}}
+
     private EntityCollection getEntityCollection (UriInfo uriInfo) throws ODataApplicationException {
 	EdmEntitySet es = getEntitySet(uriInfo);
 	List<String> tables = getTables(uriInfo);
 	List<String> keys = getKeys(uriInfo);
-	int skip = getSkip(uriInfo);
 	String limit = getLimit(uriInfo);
-	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("with t as (select count(1) from %s where %s) select * from t", String.join(", ", tables), String.join(" and ", keys)) : "select 1";
-	String select = String.format("with t as (select %s.* from %s where %s %s) select * from t", tables.get(tables.size()-1), String.join(", ", tables), String.join(" and ", keys), limit);
-	STGroup g = new STGroupFile("test.stg");
-	ST st = g.getInstanceOf("select");
-	st.add("table", tables.get(tables.size()-1));
-	st.add("tables", String.join(", ", tables));
-	// st.add("keys", String.join(" and ", keys));
-	// st.add("limit", limit);
-	// select = st.render();
+	int skip = getSkip(uriInfo);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-	     ResultSet r = s.executeQuery(select);
-	     ResultSet x = t.executeQuery(count)) {
+	     ResultSet r = s.executeQuery("" + new Foo() {
+	     	     {
+	     		 STGroup g = getSTGroup(c);
+	     		 st = g.getInstanceOf("getEntityCollection_select");
+	     		 st.add("table", tables.get(tables.size()-1));
+	     		 st.add("tables", String.join(", ", tables));
+	     		 st.add("keys", String.join(" and ", keys));
+	     		 st.add("limit", limit);}});
+	     ResultSet x = t.executeQuery("" + new Foo() {
+	     	     {
+	     		 STGroup g = getSTGroup(c);
+	     		 st = g.getInstanceOf("getEntityCollection_count");
+	     		 st.add("tables", String.join(", ", tables));
+	     		 st.add("keys", String.join(" and ", keys));}
+	     	     @Override
+	     	     public String toString () {
+			 return uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? st.render() : "select 1";}})) {
 	    EntityCollection ec = new EntityCollection();
 	    while (r.next()) {
 		if (skip-->0) continue;
@@ -234,9 +250,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	    while (x.next()) ec.setCount(x.getInt(1));
 	    return ec;}
 	catch (SQLException ex) {
-	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.toString(), select), 500, Locale.US);}
-	catch (Exception ex) {
-	    throw ex;}}
+	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
 
     private EdmEntitySet getEntitySet (UriInfoResource resource) {
 	EdmEntitySet es = null;
