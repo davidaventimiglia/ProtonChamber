@@ -25,7 +25,7 @@ Content-Type: application/json
   "birth_date": "2009-04-09"
 }
 
-# get the person list
+# get the person_address list
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person_address
 
 # get the person list with $count=true
@@ -38,7 +38,7 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$skip=3
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person?$top=2
 
 # get a particular person
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')?odata-debug=json
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')
 
 # get the address list
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/address
@@ -46,17 +46,17 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/address
 # get a particular address
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)
 
+# get the person_address list
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)/person_address
+
 # navigate to person->address
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')/person_address(11)/address
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')/person_address(12)/address
 
 # 
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')
 
 # navigate from address->person
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)/person
-
-# get an individual person
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person(62a3ad87-a5b7-456d-9256-8f6850715433)
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)/person_address(12)/person
 
 # update a person
 PUT http://localhost:8080/ProtonChamber/ProtonService.svc/person(11)?odata-debug=json
@@ -68,11 +68,8 @@ Content-Type: application/json
   "age": 39
 }
 
-# get persons
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
-
-# get a person
-GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')
+# get the person_address list
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person_address
 
 # delete a person
-DELETE http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')
+DELETE http://localhost:8080/ProtonChamber/ProtonService.svc/person_address(12)

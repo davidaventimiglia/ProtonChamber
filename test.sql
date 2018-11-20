@@ -34,4 +34,7 @@ select id, person_id, address_id from person_address where person_id = '62a3ad87
 
 with t as (select address.id from address where address.id = 1) delete from address where address.id in (select * from t);
 
+with t as (select person.id from person where true and person.id='62a3ad87-a5b7-456d-9256-8f6850715433' limit 10)
+select * from t;
 
+delete from person where (person.id) in (select * from t)

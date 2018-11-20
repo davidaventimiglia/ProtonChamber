@@ -1,11 +1,18 @@
 getEntityCollection_select(info) ::= <%
-with t as (select <info.table>.* from <info.tables> where <info.keys; separator=" and "> <info.limit>) select * from t
+with t as (select <info.table>.* from <info.tables; separator=", "> where <info.predicates; separator=" and "> <info.limit>) 
+select * from t
 %>
 
 getEntityCollection_count_n(info) ::= <%
-with t as (select count(1) from <info.tables> where <info.keys>) select * from t
+with t as (select count(1) from <info.tables> where <info.predicates>) 
+select * from t
 %>
 
 getEntityCollection_count_1(info) ::= <%
 select 1
+%>
+
+deleteEntity(info) ::= <%
+with t as (select <info.keys; separator=", "> from <info.tables; separator=", "> where <info.predicates; separator=" and "> <info.limit>) 
+delete from <info.table> where (<info.keys; separator=", ">) in (select * from t)
 %>

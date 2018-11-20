@@ -109,6 +109,17 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	    return new ArrayList<>();}
 
 	public List<String> getKeys () {
+	    ArrayList<String> keys = new ArrayList<>();
+	    for (UriResource p : resource.getUriResourceParts())
+		if (p instanceof UriResourceEntitySet)
+		    for (UriParameter x : ((UriResourceEntitySet)p).getKeyPredicates())
+			keys.add(String.format("%s.%s", p.getSegmentValue(), x.getName()));
+		else if (p instanceof UriResourceNavigation)
+		    for (UriParameter x : ((UriResourceNavigation)p).getKeyPredicates())
+			keys.add(String.format("%s.%s", p.getSegmentValue(), x.getName()));
+	    return keys;}
+
+	public List<String> getPredicates () {
 	    ArrayList<String> predicates = new ArrayList<>();
 	    predicates.add("true");
 	    for (UriResource p : resource.getUriResourceParts())
@@ -119,10 +130,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 		    for (UriParameter x : ((UriResourceNavigation)p).getKeyPredicates())
 			predicates.add(String.format("%s.%s=%s", p.getSegmentValue(), x.getName(), x.getText()));
 	    return predicates;}
-
-	public List<String> getPredicates () {
-	    return new ArrayList<>();}
-
+	
 	public String getLimit () {
 	    return resource.getTopOption()!=null ? String.format("limit %s", resource.getTopOption().getValue()) : "limit 10";}
 
@@ -187,63 +195,13 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 
     @Override
     public void deleteEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
-	ST hello = new ST("Hello, <name>!");
-	hello.add("name", "World");
-	String output = hello.render();
-	System.out.println(output);
-	EdmEntitySet es = getEntitySet(uriInfo);
-	List<String> tables = getTables(uriInfo);
-	List<String> keys = getKeys(uriInfo);
-	int skip = getSkip(uriInfo);
-	String limit = getLimit(uriInfo);
-	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("with t as (select count(1) from %s where %s) select * from t", String.join(", ", tables), String.join(" and ", keys)) : "select 1";
-	String delete = "with t as (select %s from %s where %s.%s = %s) delete from %s where person_%s.id in (select * from t);";
-    	try (Connection c = ds.getConnection();
-    	     Statement s = c.createStatement();
-    	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(delete))) {
-    	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
-    	    return;}
-    	catch (Exception ex) {
-    	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), delete), 500, Locale.US);}}
-
-    // @Override
-    // public void deleteEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
-    // 	List<String> tables = new ArrayList<>();
-    // 	List<String> predicates = new ArrayList<>(); predicates.add("true");
-    // 	EdmEntitySet es = null;
-    // 	UriResourceEntitySet ues = null;
-    // 	UriResourceNavigation nav = null;
-    // 	for (UriResource current : uriInfo.getUriResourceParts()) {
-    // 	    if (current instanceof UriResourceEntitySet) {
-    // 		ues = (UriResourceEntitySet)current;
-    // 		es = ues.getEntitySet();
-    // 		for (UriParameter p : ues.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));}
-    // 	    if (current instanceof UriResourceNavigation) {
-    // 		nav = (UriResourceNavigation)current;
-    // 		es = (EdmEntitySet)
-    // 		    es.getRelatedBindingTarget(nav
-    // 					       .getProperty()
-    // 					       .getName());
-    // 		for (UriParameter p : nav.getKeyPredicates()) predicates.add(String.format("%s.%s=%s", es.getName(), p.getName(), String.format("%s", p.getText())));
-    // 		for (EdmAnnotation a : nav.getProperty().getAnnotations())
-    // 		    predicates
-    // 			.add(a
-    // 			     .getExpression()
-    // 			     .asConstant()
-    // 			     .getValueAsString());}
-    // 	    tables.add(es.getName());}
-    // 	Integer skip = uriInfo.getSkipOption()!=null ? uriInfo.getSkipOption().getValue() : null;
-    // 	String limit = uriInfo.getTopOption()!=null ? String.format("limit %s", uriInfo.getTopOption().getValue()) : "limit 10";
-    // 	String count = uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? String.format("select count(1) from %s where %s", String.join(", ", tables), String.join(" and ", predicates)) : "select 1";
-    // 	String select = String.format("select %s.* from %s where %s %s", es.getName(), String.join(", ", tables), String.join(" and ", predicates), limit);
-    // 	String delete = String.format("delete from %s where true and %s", es.getName(), String.join("and", predicates));
-    // 	try (Connection c = ds.getConnection();
-    // 	     Statement s = c.createStatement();
-    // 	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(delete))) {
-    // 	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
-    // 	    return;}
-    // 	catch (Exception ex) {
-    // 	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), delete), 500, Locale.US);}}
+	try (Connection c = ds.getConnection();
+	     Statement s = c.createStatement();
+	     Statement t = c.createStatement();
+    	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute("" + new Foo() {{init(c, "deleteEntity", uriInfo);}}))) {
+	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());}
+	catch (SQLException ex) {
+	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
 
     @Override
     public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException {
