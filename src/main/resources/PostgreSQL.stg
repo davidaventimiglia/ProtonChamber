@@ -1,5 +1,5 @@
 getEntityCollection_select(info) ::= <%
-with t as (select <info.table>.* from <info.tables> where <info.keys> <info.limit>) select * from t
+with t as (select <info.table>.* from <info.tables> where <info.keys; separator=" and "> <info.limit>) select * from t
 %>
 
 getEntityCollection_count_n(info) ::= <%

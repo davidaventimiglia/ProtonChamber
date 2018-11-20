@@ -71,5 +71,8 @@ Content-Type: application/json
 # get persons
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
 
+# get a person
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')
+
 # delete a person
 DELETE http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')
