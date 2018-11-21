@@ -16,3 +16,8 @@ deleteEntity(info) ::= <%
 with t as (select <info.keys; separator=", "> from <info.tables; separator=", "> where <info.predicates; separator=" and "> <info.limit>) 
 delete from <info.table> where (<info.keys; separator=", ">) in (select * from t)
 %>
+
+updateEntity(info) ::= <%
+with t as (select <info.keys; separator=", "> from <info.tables; separator=", "> where <info.predicates; separator=" and "> <info.limit>)
+update <info.table> set <info.pairs> where (<info.keys; separator=", ") in (select * from t)
+%>

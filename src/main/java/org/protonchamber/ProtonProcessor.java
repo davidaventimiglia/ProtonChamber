@@ -64,19 +64,14 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 				       @Override public Object invoke (Object proxy, Method method, Object[] args) throws Throwable {
 					   return method.invoke(p, args);}});}
 
-    class Foo {
+    private String getSQL (Connection c, String name, UriInfo info) throws SQLException {
 	ST st;
-	STGroup getSTGroup (Connection c) throws SQLException {
-	    STGroup g = new STGroupFile(String.format("%s.stg", c.getMetaData().getDatabaseProductName()));
-	    if (g==null) g = new STGroupFile("default.stg");
-	    return g;}
-	void init (Connection c, String name, UriInfo info) throws SQLException {
-	    st = getSTGroup(c).getInstanceOf(name);
-	    st.add("info", new Bar(info));}
-	@Override
-	public String toString () {
-	    servlet.log(String.format("st.render(): %s", st.render()));
-	    return st.render();}}
+	STGroup g = new STGroupFile(String.format("%s.stg", c.getMetaData().getDatabaseProductName()));
+	if (g==null) g = new STGroupFile("default.stg");
+	st = g.getInstanceOf(name);
+	st.add("info", new Bar(info));
+	servlet.log(String.format("st.render(): %s", st.render()));
+	return st.render();}
 
     class Bar {
 	UriInfoResource resource;
@@ -142,8 +137,8 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-	     ResultSet r = s.executeQuery("" + new Foo() {{init(c, "getEntityCollection_select", uriInfo);}});
-	     ResultSet x = t.executeQuery("" + new Foo() {{init(c, uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? "getEntityCollection_count_n" : "getEntityCollection_count_1", uriInfo);}})) {
+	     ResultSet r = s.executeQuery(getSQL(c, "getEntityCollection_select", uriInfo));
+	     ResultSet x = t.executeQuery(getSQL(c, uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? "getEntityCollection_count_n" : "getEntityCollection_count_1", uriInfo))) {
 	    EntityCollection ec = new EntityCollection();
 	    EdmEntitySet es = getEntitySet(uriInfo);
 	    int skip = getSkip(uriInfo);
@@ -170,8 +165,8 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-	     ResultSet r = s.executeQuery("" + new Foo() {{init(c, "getEntityCollection_select", uriInfo);}});
-	     ResultSet x = t.executeQuery("" + new Foo() {{init(c, uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? "getEntityCollection_count_n" : "getEntityCollection_count_1", uriInfo);}})) {
+	     ResultSet r = s.executeQuery(getSQL(c, "getEntityCollection_select", uriInfo));
+	     ResultSet x = t.executeQuery(getSQL(c, uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? "getEntityCollection_count_n" : "getEntityCollection_count_1", uriInfo))) {
 	    EntityCollection ec = new EntityCollection();
 	    EdmEntitySet es = getEntitySet(uriInfo);
 	    int skip = getSkip(uriInfo);
@@ -198,7 +193,7 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-    	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute("" + new Foo() {{init(c, "deleteEntity", uriInfo);}}))) {
+    	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(getSQL(c, "deleteEntity", uriInfo)))) {
 	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());}
 	catch (SQLException ex) {
 	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
