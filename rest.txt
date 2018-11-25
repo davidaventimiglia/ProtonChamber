@@ -59,17 +59,22 @@ GET http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/address(1)/person_address(12)/person
 
 # update a person
-PUT http://localhost:8080/ProtonChamber/ProtonService.svc/person(11)?odata-debug=json
+PUT http://localhost:8080/ProtonChamber/ProtonService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')
 Content-Type: application/json
 
 {
-  "last_name": "'Kwok'",
-  "first_name": "'Patty'",
-  "age": 39
+"birth_date": "2009-04-09",
+"grade": 4,
+"last_name": "Ventimiglia",
+"id": "62a3ad87-a5b7-456d-9256-8f6850715433",
+"first_name": "Olivia"
 }
 
 # get the person_address list
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person_address
 
-# delete a person
+# get the person list
+GET http://localhost:8080/ProtonChamber/ProtonService.svc/person
+
+# delete a person_address
 DELETE http://localhost:8080/ProtonChamber/ProtonService.svc/person_address(12)

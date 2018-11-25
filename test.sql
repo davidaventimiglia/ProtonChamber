@@ -38,3 +38,10 @@ with t as (select person.id from person where true and person.id='62a3ad87-a5b7-
 select * from t;
 
 delete from person where (person.id) in (select * from t)
+
+
+
+
+
+
+with t as (select person.id from person where true and person.id='62a3ad87-a5b7-456d-9256-8f6850715433' limit 10) update person set birth_date='2009-04-09', grade='4', last_name='Ventimiglia', id='62a3ad87-a5b7-456d-9256-8f6850715433', first_name='Olivia' where (person.id) in (select * from t)
