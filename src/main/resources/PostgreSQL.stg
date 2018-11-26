@@ -22,4 +22,8 @@ with t as (select <info.keys; separator=", "> from <info.tables; separator=", ">
 update <info.table> set <info.pairs:{it|<it.key>=<it.value>}; separator=", "> where (<info.keys; separator=", ">) in (select * from t)
 %>
 
+insertEntity(info) ::= <%
+insert into <info.table> (<info.pairs:{it|<it.key>}; separator=", ">) values (<info.pairs:{it|<it.value>}; separator=", ">)
+%>
+
 

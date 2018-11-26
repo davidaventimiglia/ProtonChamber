@@ -14,13 +14,12 @@ import org.apache.olingo.commons.api.format.*;
 import org.apache.olingo.commons.api.http.*;
 import org.apache.olingo.server.api.*;
 import org.apache.olingo.server.api.deserializer.*;
-import org.apache.olingo.server.api.deserializer.DeserializerException;
 import org.apache.olingo.server.api.processor.*;
 import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
 import org.stringtemplate.v4.*;
 
-public class ProtonProcessor extends DefaultProcessor implements EntityProcessor, EntityCollectionProcessor, PrimitiveProcessor {
+public class ProtonProcessor implements EntityProcessor, EntityCollectionProcessor, PrimitiveProcessor {
 
     // nested types
 
@@ -48,21 +47,6 @@ public class ProtonProcessor extends DefaultProcessor implements EntityProcessor
     public void init (OData odata, ServiceMetadata serviceMetaData) {
 	this.odata = odata;
 	this.serviceMetaData = serviceMetaData;}
-
-    PreparedStatement decorate (final PreparedStatement p, List<String> names, List<Object> values, EdmEntityType et) throws SQLException {
-	for (int i = 1; i<=p.getParameterMetaData().getParameterCount(); i++)
-	    if (et.getProperty(names.get(i-1)).getType() instanceof EdmPrimitiveType)
-		if (((EdmPrimitiveType)et.getProperty(names.get(i-1)).getType()).getDefaultType().isAssignableFrom(Calendar.class))
-		    p.setObject(i, ((Calendar)values.get(i-1)).getTime().toInstant().atZone(ZoneId.of("Africa/Tunis")).toLocalDate());
-		else
-		    p.setString(i, "" + values.get(i-1));
-	return
-	    (PreparedStatement)
-	    Proxy.newProxyInstance(ProtonProcessor.class.getClassLoader(),
-				   new Class[]{PreparedStatement.class},
-				   new InvocationHandler () {
-				       @Override public Object invoke (Object proxy, Method method, Object[] args) throws Throwable {
-					   return method.invoke(p, args);}});}
 
     private String getSQL (Connection c, String name, DB db) throws SQLException {
 	ST st;
@@ -109,6 +93,9 @@ public class ProtonProcessor extends DefaultProcessor implements EntityProcessor
 						   .getName());
 		else throw new IllegalStateException("No EntitySet!");
 	    return es;}
+
+	public Entity getEntity () {
+	    return e;}
 
 	public EdmEntityType getEntityType () {
 	    EdmEntityType es = null;
@@ -210,6 +197,7 @@ public class ProtonProcessor extends DefaultProcessor implements EntityProcessor
 
     @Override
     public void deleteEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
+	DB db = new DB(odata, request, response, uriInfo);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
@@ -220,6 +208,7 @@ public class ProtonProcessor extends DefaultProcessor implements EntityProcessor
 
     @Override
     public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException {
+	DB db = new DB(odata, request, response, uriInfo, responseFormat);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
@@ -230,31 +219,52 @@ public class ProtonProcessor extends DefaultProcessor implements EntityProcessor
 
     @Override
     public void createEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException, SerializerException {
-	if (uriInfo.getUriResourceParts().isEmpty()) throw new IllegalStateException("No URI Resource parts!");
-	if (uriInfo.getUriResourceParts().get(0).getKind()!=UriResourceKind.entitySet) throw new IllegalStateException("Not an Entity Set!");
-	UriResourceEntitySet es = (UriResourceEntitySet)uriInfo.getUriResourceParts().get(0);
-	List<String> names = new ArrayList<>(); List<Object> values = new ArrayList<>(); List<String> placeholders = new ArrayList<>(names);
-	Entity e = odata.createDeserializer(requestFormat).entity(request.getBody(), es.getEntityType()).getEntity();
-	for (Property p : e.getProperties()) {names.add(p.getName()); values.add(p.getValue()); placeholders.add(""+p.getValue());}
-	placeholders.replaceAll((x)->"?");
-	String insert = String.format("insert into %s (%s) values (%s)", es.getEntitySet().getName(), String.join(",", names), String.join(",", placeholders));
+	DB db = new DB(odata, request, response, uriInfo, responseFormat);
 	try (Connection c = ds.getConnection();
-	     PreparedStatement p = decorate(c.prepareStatement(insert, es.getEntityType().getPropertyNames().toArray(new String[0])), names, values, es.getEntityType());
-	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(p.executeUpdate());
-	     ResultSet r = p.getGeneratedKeys()) {
+	     Statement s = c.createStatement();
+	     Statement t = c.createStatement();
+    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(getSQL(c, "insertEntity", new DB(odata, request, response, uriInfo, requestFormat, responseFormat))));
+	     ResultSet r = s.getGeneratedKeys()) {
 	    while (r.next())
 		for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
-		    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
-			if (e.getProperty(r.getMetaData().getColumnName(i))==null)
-			    e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
+		    if (db.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
+			if (db.getEntity().getProperty(r.getMetaData().getColumnName(i))==null)
+			    db.getEntity().addProperty(new Property(db.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
 			else
-			    e.getProperty(r.getMetaData().getColumnName(i)).setValue(ValueType.PRIMITIVE, r.getObject(i));
-	    response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, es.getEntitySet().getEntityType(), e, EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(es.getEntitySet()).build()).build()).getContent());
+			    db.getEntity().getProperty(r.getMetaData().getColumnName(i)).setValue(ValueType.PRIMITIVE, r.getObject(i));
+	    response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, db.getEntityType(), db.getEntity(), EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(db.getEntitySet()).build()).build()).getContent());
 	    response.setStatusCode(HttpStatusCode.CREATED.getStatusCode());
-	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
-	    return;}
-	catch (Exception ex) {
-	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), insert), 500, Locale.US);}}
+	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());}
+	catch (SQLException ex) {
+	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
+
+    // @Override
+    // public void createEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException, SerializerException {
+    // 	if (uriInfo.getUriResourceParts().isEmpty()) throw new IllegalStateException("No URI Resource parts!");
+    // 	if (uriInfo.getUriResourceParts().get(0).getKind()!=UriResourceKind.entitySet) throw new IllegalStateException("Not an Entity Set!");
+    // 	UriResourceEntitySet es = (UriResourceEntitySet)uriInfo.getUriResourceParts().get(0);
+    // 	List<String> names = new ArrayList<>(); List<Object> values = new ArrayList<>(); List<String> placeholders = new ArrayList<>(names);
+    // 	Entity e = odata.createDeserializer(requestFormat).entity(request.getBody(), es.getEntityType()).getEntity();
+    // 	for (Property p : e.getProperties()) {names.add(p.getName()); values.add(p.getValue()); placeholders.add(""+p.getValue());}
+    // 	placeholders.replaceAll((x)->"?");
+    // 	String insert = String.format("insert into %s (%s) values (%s)", es.getEntitySet().getName(), String.join(",", names), String.join(",", placeholders));
+    // 	try (Connection c = ds.getConnection();
+    // 	     PreparedStatement p = decorate(c.prepareStatement(insert, es.getEntityType().getPropertyNames().toArray(new String[0])), names, values, es.getEntityType());
+    // 	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(p.executeUpdate());
+    // 	     ResultSet r = p.getGeneratedKeys()) {
+    // 	    while (r.next())
+    // 		for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
+    // 		    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
+    // 			if (e.getProperty(r.getMetaData().getColumnName(i))==null)
+    // 			    e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
+    // 			else
+    // 			    e.getProperty(r.getMetaData().getColumnName(i)).setValue(ValueType.PRIMITIVE, r.getObject(i));
+    // 	    response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, es.getEntitySet().getEntityType(), e, EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(es.getEntitySet()).build()).build()).getContent());
+    // 	    response.setStatusCode(HttpStatusCode.CREATED.getStatusCode());
+    // 	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+    // 	    return;}
+    // 	catch (Exception ex) {
+    // 	    throw new ODataApplicationException(String.format("message: %s, query: %s", ex.getMessage(), insert), 500, Locale.US);}}
 
     @Override
     public void deletePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
