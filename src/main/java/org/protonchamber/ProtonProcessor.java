@@ -112,7 +112,8 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 
 	public List<String> getTables () {
 	    ArrayList<String> tables = new ArrayList<>();
-	    for (UriResource p : uriInfo.getUriResourceParts()) tables.add(p.getSegmentValue());
+	    for (UriResource p : uriInfo.getUriResourceParts())
+		tables.add(p.getSegmentValue());
 	    return tables;}
 
 	public String getTable () {
@@ -125,22 +126,32 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	public List<String> getKeys () {
 	    ArrayList<String> keys = new ArrayList<>();
 	    for (UriResource p : uriInfo.getUriResourceParts())
-		if (p instanceof UriResourceEntitySet) for (UriParameter x : ((UriResourceEntitySet)p).getKeyPredicates()) keys.add(String.format("%s.%s", p.getSegmentValue(), x.getName()));
-		else if (p instanceof UriResourceNavigation) for (UriParameter x : ((UriResourceNavigation)p).getKeyPredicates()) keys.add(String.format("%s.%s", p.getSegmentValue(), x.getName()));
+		if (p instanceof UriResourceEntitySet)
+		    for (UriParameter x : ((UriResourceEntitySet)p).getKeyPredicates())
+			keys.add(String.format("%s.%s", p.getSegmentValue(), x.getName()));
+		else if (p instanceof UriResourceNavigation)
+		    for (UriParameter x : ((UriResourceNavigation)p).getKeyPredicates())
+			keys.add(String.format("%s.%s", p.getSegmentValue(), x.getName()));
 	    return keys;}
 
 	public Set<Map.Entry<String, String>> getPairs () throws DeserializerException {
 	    Map<String, String> pairs = new HashMap<>();
 	    List<String> names = getEntityType().getPropertyNames();
-	    for (Property p : e.getProperties()) if (names.contains(p.getName())) if (getEntityType().getProperty(p.getName()).getType().getKind()==EdmTypeKind.PRIMITIVE) pairs.put(p.getName(), String.format("'%s'", ((EdmPrimitiveType)getEntityType().getProperty(p.getName()).getType()).getDefaultType().isAssignableFrom(Calendar.class) ? ((Calendar)p.getValue()).getTime().toInstant().atZone(ZoneId.of("Africa/Tunis")).toLocalDate() : p.getValue()));
+	    for (Property p : e.getProperties())
+		if (names.contains(p.getName()))
+		    if (getEntityType().getProperty(p.getName()).getType().getKind()==EdmTypeKind.PRIMITIVE) pairs.put(p.getName(), String.format("'%s'", ((EdmPrimitiveType)getEntityType().getProperty(p.getName()).getType()).getDefaultType().isAssignableFrom(Calendar.class) ? ((Calendar)p.getValue()).getTime().toInstant().atZone(ZoneId.of("Africa/Tunis")).toLocalDate() : p.getValue()));
 	    return pairs.entrySet();}
 
 	public List<String> getPredicates () {
 	    ArrayList<String> predicates = new ArrayList<>();
 	    predicates.add("true");
 	    for (UriResource p : uriInfo.getUriResourceParts())
-		if (p instanceof UriResourceEntitySet) for (UriParameter x : ((UriResourceEntitySet)p).getKeyPredicates()) predicates.add(String.format("%s.%s=%s", p.getSegmentValue(), x.getName(), x.getText()));
-		else if (p instanceof UriResourceNavigation) for (UriParameter x : ((UriResourceNavigation)p).getKeyPredicates()) predicates.add(String.format("%s.%s=%s", p.getSegmentValue(), x.getName(), x.getText()));
+		if (p instanceof UriResourceEntitySet)
+		    for (UriParameter x : ((UriResourceEntitySet)p).getKeyPredicates())
+			predicates.add(String.format("%s.%s=%s", p.getSegmentValue(), x.getName(), x.getText()));
+		else if (p instanceof UriResourceNavigation)
+		    for (UriParameter x : ((UriResourceNavigation)p).getKeyPredicates())
+			predicates.add(String.format("%s.%s=%s", p.getSegmentValue(), x.getName(), x.getText()));
 	    return predicates;}
 	
 	public String getLimit () {
@@ -163,9 +174,12 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	    while (r.next()) {
 		if (skip-->0) continue;
 		Entity e = new Entity();
-		for (int i=1; i<=r.getMetaData().getColumnCount(); i++) if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE) e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
+		for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
+		    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE)
+			e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
 		ec.getEntities().add(e);}
-	    while (x.next()) ec.setCount(x.getInt(1));
+	    while (x.next())
+		ec.setCount(x.getInt(1));
 	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 	    response.setContent(odata.createSerializer(responseFormat).entityCollection(serviceMetaData, es.getEntityType(), ec, EntityCollectionSerializerOptions.with().id(request.getRawBaseUri() + "/" + es.getName()).contextURL(ContextURL.with().entitySet(es).build()).count(uriInfo.getCountOption()).build()).getContent());}
@@ -186,12 +200,15 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	    while (r.next()) {
 		if (skip-->0) continue;
 		Entity e = new Entity();
-		for (int i=1; i<=r.getMetaData().getColumnCount(); i++) if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE) e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
+		for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
+		    if (es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getKind()==EdmTypeKind.PRIMITIVE) e.addProperty(new Property(es.getEntityType().getProperty(r.getMetaData().getColumnName(i)).getType().getName(), r.getMetaData().getColumnName(i), ValueType.PRIMITIVE, r.getObject(i)));
 		ec.getEntities().add(e);}
-	    while (x.next()) ec.setCount(x.getInt(1));
+	    while
+		(x.next()) ec.setCount(x.getInt(1));
 	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
-	    for (Entity e : ec.getEntities()) response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, es.getEntityType(), e, EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(es).build()).build()).getContent());}
+	    for (Entity e : ec.getEntities())
+		response.setContent(odata.createSerializer(responseFormat).entity(serviceMetaData, es.getEntityType(), e, EntitySerializerOptions.with().contextURL(ContextURL.with().entitySet(es).build()).build()).getContent());}
 	catch (SQLException ex) {
 	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
 
