@@ -16,7 +16,7 @@ Authorization: Basic YWRtaW46YWRtaW4=
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata
 
 # insert a person
-POST http://localhost:8080/ProtonChamber/ProtonService.svc/person?odata-debug=json
+POST http://localhost:8080/ProtonChamber/ProtonService.svc/person
 Content-Type: application/json
 
 {
@@ -69,6 +69,9 @@ Content-Type: application/json
 "id": "62a3ad87-a5b7-456d-9256-8f6850715433",
 "first_name": "Olivia"
 }
+
+# delete a person
+DELETE http://localhost:8080/ProtonChamber/ProtonService.svc/person('25745033-0f00-4037-b0ff-7db4c4ce8c83')
 
 # get the person_address list
 GET http://localhost:8080/ProtonChamber/ProtonService.svc/person_address

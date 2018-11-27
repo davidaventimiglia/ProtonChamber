@@ -55,7 +55,6 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	st = g.getInstanceOf(name);
 	st.add("info", db);
 	servlet.log(String.format("st.render(): %s", st.render()));
-	servlet.log(String.format("st.render(): %s", st.render()));
 	return st.render();}
 
     class DB {
@@ -79,7 +78,8 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 
 	DB (OData odata, ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws DeserializerException {
 	    this(odata, request, response, uriInfo, responseFormat);
-	    this.e = this.odata.createDeserializer(requestFormat).entity(request.getBody(), getEntitySet().getEntityType()).getEntity();}
+	    this.e = this.odata.createDeserializer(requestFormat).entity(request.getBody(), getEntitySet().getEntityType()).getEntity();
+	    servlet.log(String.format("this.e: %s", this.e));}
 
 	public EdmEntitySet getEntitySet () {
 	    EdmEntitySet es = null;
@@ -218,29 +218,29 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-    	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(getSQL(c, "deleteEntity", new DB(odata, request, response, uriInfo))))) {
+    	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(getSQL(c, "deleteEntity", db)))) {
 	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());}
 	catch (SQLException ex) {
 	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
 
     @Override
     public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException {
-	DB db = new DB(odata, request, response, uriInfo, responseFormat);
+	DB db = new DB(odata, request, response, uriInfo, requestFormat, responseFormat);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(getSQL(c, "updateEntity", new DB(odata, request, response, uriInfo, requestFormat, responseFormat))))) {
+    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(getSQL(c, "updateEntity", db)))) {
 	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());}
 	catch (SQLException ex) {
 	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
 
     @Override
     public void createEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException, SerializerException {
-	DB db = new DB(odata, request, response, uriInfo, responseFormat);
+	DB db = new DB(odata, request, response, uriInfo, requestFormat, responseFormat);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(getSQL(c, "insertEntity", new DB(odata, request, response, uriInfo, requestFormat, responseFormat))));
+    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(getSQL(c, "insertEntity", db), Statement.RETURN_GENERATED_KEYS));
 	     ResultSet r = s.getGeneratedKeys()) {
 	    while (r.next())
 		for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
