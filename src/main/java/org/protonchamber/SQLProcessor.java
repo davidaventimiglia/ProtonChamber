@@ -160,7 +160,7 @@ public class SQLProcessor implements EntityProcessor, EntityCollectionProcessor,
 	response.addHeader("SQL", getSQL("PostgreSQL", "deleteEntity", db));}
 
     @Override
-    public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException {
+    public void updateEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException {
 	DB db = new DB(odata, request, response, uriInfo, requestFormat, responseFormat);
 	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	response.addHeader("SQL", getSQL("PostgreSQL", "updateEntity", db));}
@@ -173,13 +173,13 @@ public class SQLProcessor implements EntityProcessor, EntityCollectionProcessor,
 	response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());}
 
     @Override
-    public void deletePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
+    public void deletePrimitive (ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
 	DB db = new DB(odata, request, response, uriInfo);}
 
     @Override
-    public void readPrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat) throws ODataApplicationException, ODataLibraryException {
+    public void readPrimitive (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat) throws ODataApplicationException, ODataLibraryException {
 	DB db = new DB(odata, request, response, uriInfo);}
 
     @Override
-    public void updatePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+    public void updatePrimitive (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 	DB db = new DB(odata, request, response, uriInfo);}}

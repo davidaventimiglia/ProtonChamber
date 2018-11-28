@@ -19,7 +19,7 @@ import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
 import org.stringtemplate.v4.*;
 
-public class ProtonProcessor implements EntityProcessor, EntityCollectionProcessor, PrimitiveProcessor {
+public class ProtonProcessor extends SQLProcessor {
 
     // nested types
 
@@ -162,12 +162,13 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 
     @Override
     public void readEntityCollection (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+	super.readEntityCollection(request, response, uriInfo, responseFormat);
 	DB db = new DB(odata, request, response, uriInfo, responseFormat);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-	     ResultSet r = s.executeQuery(getSQL(c, "getEntityCollection_select", db));
-	     ResultSet x = t.executeQuery(getSQL(c, uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? "getEntityCollection_count_n" : "getEntityCollection_count_1", new DB(odata, request, response, uriInfo, responseFormat)))) {
+	     ResultSet r = s.executeQuery(response.getHeaders("SQL").get(0));
+	     ResultSet x = t.executeQuery(response.getHeaders("SQL").get(1))) {
 	    EntityCollection ec = new EntityCollection();
 	    EdmEntitySet es = db.getEntitySet();
 	    int skip = db.getSkip();
@@ -188,12 +189,13 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 
     @Override
     public void readEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+	super.readEntity(request, response, uriInfo, responseFormat);
 	DB db = new DB(odata, request, response, uriInfo, responseFormat);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-	     ResultSet r = s.executeQuery(getSQL(c, "getEntityCollection_select", db));
-	     ResultSet x = t.executeQuery(getSQL(c, uriInfo.getCountOption()!=null && uriInfo.getCountOption().getValue() ? "getEntityCollection_count_n" : "getEntityCollection_count_1", new DB(odata, request, response, uriInfo, responseFormat)))) {
+	     ResultSet r = s.executeQuery(getSQL(request.getHeaders("SQL").get(0)));
+	     ResultSet x = t.executeQuery(getSQL(request.getHeaders("SQL").get(1)));
 	    EntityCollection ec = new EntityCollection();
 	    EdmEntitySet es = db.getEntitySet();
 	    int skip = db.getSkip();
@@ -214,33 +216,36 @@ public class ProtonProcessor implements EntityProcessor, EntityCollectionProcess
 
     @Override
     public void deleteEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
+	super.deleteEntity(request, response, uriInfo);
 	DB db = new DB(odata, request, response, uriInfo);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-    	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(getSQL(c, "deleteEntity", db)))) {
+    	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(getSQL(request.getHeader("SQL"))))) {
 	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());}
 	catch (SQLException ex) {
 	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
 
     @Override
     public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException {
+	super.updateEntity(request, response, uriInfo, requestFormat, responseFormat);
 	DB db = new DB(odata, request, response, uriInfo, requestFormat, responseFormat);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(getSQL(c, "updateEntity", db)))) {
+    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(getSQL(request.getHeader("SQL"))))) {
 	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());}
 	catch (SQLException ex) {
 	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
 
     @Override
     public void createEntity (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, DeserializerException, SerializerException {
+	super.createEntity(request, response, uriInfo, requestFormat, responseFormat);
 	DB db = new DB(odata, request, response, uriInfo, requestFormat, responseFormat);
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(getSQL(c, "insertEntity", db), Statement.RETURN_GENERATED_KEYS));
+    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(request.getHeader("SQL"), Statement.RETURN_GENERATED_KEYS));
 	     ResultSet r = s.getGeneratedKeys()) {
 	    while (r.next())
 		for (int i=1; i<=r.getMetaData().getColumnCount(); i++)
