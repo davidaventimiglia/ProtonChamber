@@ -1,0 +1,83 @@
+# -*- mode: restclient; -*-
+
+# undeploy
+GET http://localhost:8080/manager/text/undeploy?path=/ProtonChamber
+Authorization: Basic YWRtaW46YWRtaW4=
+
+# deploy
+GET http://localhost:8080/manager/text/deploy?war=file:/home/dventimi/work/Bitbucket/NeptuneStation/AtomicFramework/protonchamber/target/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
+Authorization: Basic YWRtaW46YWRtaW4=
+
+# list deployed apps
+GET http://localhost:8080/manager/text/list
+Authorization: Basic YWRtaW46YWRtaW4=
+
+# get metadata
+GET http://localhost:8080/ProtonChamber/SQLService.svc/$metadata
+
+# insert a person
+POST http://localhost:8080/ProtonChamber/SQLService.svc/person
+Content-Type: application/json
+
+{
+  "last_name": "Ventimiglia",
+  "first_name": "Yuki",
+  "birth_date": "2009-04-09"
+}
+
+# get the person_address list
+GET http://localhost:8080/ProtonChamber/SQLService.svc/person_address?odata-debug=json
+
+# get the person list with $count=true
+GET http://localhost:8080/ProtonChamber/SQLService.svc/person?$count=true
+
+# get the person list with $skip=n
+GET http://localhost:8080/ProtonChamber/SQLService.svc/person?$skip=3
+
+# get the person list with $top=n
+GET http://localhost:8080/ProtonChamber/SQLService.svc/person?$top=2
+
+# get a particular person
+GET http://localhost:8080/ProtonChamber/SQLService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')
+
+# get the address list
+GET http://localhost:8080/ProtonChamber/SQLService.svc/address
+
+# get a particular address
+GET http://localhost:8080/ProtonChamber/SQLService.svc/address(1)
+
+# get the person_address list
+GET http://localhost:8080/ProtonChamber/SQLService.svc/address(1)/person_address
+
+# navigate to person->address
+GET http://localhost:8080/ProtonChamber/SQLService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')/person_address(12)/address
+
+# 
+GET http://localhost:8080/ProtonChamber/SQLService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')
+
+# navigate from address->person
+GET http://localhost:8080/ProtonChamber/SQLService.svc/address(1)/person_address(12)/person
+
+# update a person
+PUT http://localhost:8080/ProtonChamber/SQLService.svc/person('62a3ad87-a5b7-456d-9256-8f6850715433')
+Content-Type: application/json
+
+{
+"birth_date": "2009-04-09",
+"grade": 4,
+"last_name": "Ventimiglia",
+"id": "62a3ad87-a5b7-456d-9256-8f6850715433",
+"first_name": "Olivia"
+}
+
+# delete a person
+DELETE http://localhost:8080/ProtonChamber/SQLService.svc/person('25745033-0f00-4037-b0ff-7db4c4ce8c83')
+
+# get the person_address list
+GET http://localhost:8080/ProtonChamber/SQLService.svc/person_address
+
+# get the person list
+GET http://localhost:8080/ProtonChamber/SQLService.svc/person
+
+# delete a person_address
+DELETE http://localhost:8080/ProtonChamber/SQLService.svc/person_address(12)
