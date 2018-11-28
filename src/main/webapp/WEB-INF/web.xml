@@ -14,9 +14,23 @@
     <init-param><param-name>SCHEMA_PATTERN</param-name><param-value>public</param-value></init-param>
   </servlet>
 
+  <servlet>
+    <servlet-name>SQLServlet</servlet-name>
+    <servlet-class>org.protonchamber.SQLServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+    <init-param><param-name>dsname</param-name><param-value>jdbc/ProtonDB</param-value></init-param>
+    <init-param><param-name>CATALOG</param-name><param-value>dventimi</param-value></init-param>
+    <init-param><param-name>SCHEMA_PATTERN</param-name><param-value>public</param-value></init-param>
+  </servlet>
+
   <servlet-mapping>
     <servlet-name>ProtonServlet</servlet-name>
     <url-pattern>/ProtonService.svc/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>SQLServlet</servlet-name>
+    <url-pattern>/SQLService.svc/*</url-pattern>
   </servlet-mapping>
 
   <resource-ref>
