@@ -8,8 +8,6 @@ import javax.servlet.*;
 import javax.sql.*;
 import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.provider.*;
-import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
-import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
 import org.apache.olingo.commons.api.edm.provider.annotation.*;
 import org.apache.olingo.commons.api.ex.*;
 
