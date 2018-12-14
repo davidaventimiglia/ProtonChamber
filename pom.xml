@@ -39,8 +39,8 @@
 		  <time>20000</time>
 		</wait>
 		<log>
-		  <prefix>DB</prefix>
-		  <color></color>
+		  <prefix>DB: </prefix>
+		  <color>green</color>
 		</log>
 		<env>
 		  <POSTGRES_DB>atomic</POSTGRES_DB>
@@ -50,6 +50,11 @@
 		<ports>
 		  <port>7432:5432</port>
 		</ports>
+		<!-- <volumes> -->
+		<!--   <bind> -->
+		<!--     <volume>src/test/resources/db:/docker-entrypoint-initdb.d</volume> -->
+		<!--   </bind> -->
+		<!-- </volumes> -->
 	      </run>
 	    </image>
 	  </images>

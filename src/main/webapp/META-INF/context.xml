@@ -6,7 +6,7 @@
             username="dventimi"
             password="isyih666"
             driverClassName="org.postgresql.Driver"
-            url="jdbc:postgresql:dventimi"
+	    url="jdbc:postgresql://localhost:7432/atomic"
             maxTotal="8"
             maxIdle="4"/>
 </Context>
