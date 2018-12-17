@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ITHealthCheckTest {
     @BeforeAll
-    public void setUp () {
+    public static void setUp () {
     	ST st;
     	STGroup g = new STGroupFile("default.stg");
     	st = g.getInstanceOf("setUp");
