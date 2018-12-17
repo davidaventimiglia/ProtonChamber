@@ -1,0 +1,6 @@
+# -*- mode: restclient; -*-
+
+PUT http://localhost:8080/manager/text/deploy?path=/ProtonChamber
+Authorization: Basic YWRtaW46YWRtaW4=
+
+< target/ProtonChamber-1.0.0-SNAPSHOT.war
