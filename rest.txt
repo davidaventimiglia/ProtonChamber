@@ -5,8 +5,10 @@ GET http://localhost:8080/manager/text/undeploy?path=/ProtonChamber
 Authorization: Basic YWRtaW46YWRtaW4=
 
 # deploy
-GET http://localhost:8080/manager/text/deploy?war=file:/home/dventimi/work/Bitbucket/NeptuneStation/AtomicFramework/protonchamber/target/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
+PUT http://localhost:8080/manager/text/deploy?path=/ProtonChamber
 Authorization: Basic YWRtaW46YWRtaW4=
+
+< target/ProtonChamber-1.0.0-SNAPSHOT.war
 
 # list deployed apps
 GET http://localhost:8080/manager/text/list
