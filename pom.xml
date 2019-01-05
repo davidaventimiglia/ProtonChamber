@@ -12,7 +12,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <olingo.version>4.4.0</olingo.version>
+    <olingo.version>4.5.0</olingo.version>
   </properties>
 
   <build>
@@ -21,9 +21,9 @@
 	<groupId>org.codehaus.mojo</groupId>
 	<artifactId>versions-maven-plugin</artifactId>
 	<version>2.5</version>
-	<configuration>
-          <generateBackupPoms>false</generateBackupPoms>
-	</configuration>
+	<!-- <configuration> -->
+        <!--   <generateBackupPoms>false</generateBackupPoms> -->
+	<!-- </configuration> -->
       </plugin>
       <plugin>
 	<groupId>io.fabric8</groupId>
@@ -124,6 +124,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
+	<version>1.1</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -145,7 +146,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.2.5</version>
+      <version>42.2.5.jre7</version>
     </dependency>
     <!-- <dependency> -->
     <!--   <groupId>junit</groupId> -->
@@ -156,7 +157,7 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.3.1</version>
+      <version>5.4.0-M1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -167,7 +168,7 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
+      <version>3.0-alpha-1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
