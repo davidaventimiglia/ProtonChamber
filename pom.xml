@@ -17,14 +17,65 @@
 
   <build>
     <plugins>
+      <!-- Configure the compiler plugin. -->
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+	  <release>11</release>
+        </configuration>
+      </plugin>
+      <!-- Configure integration tests. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.0.0-M1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Display Maven version info. -->
       <plugin>
 	<groupId>org.codehaus.mojo</groupId>
 	<artifactId>versions-maven-plugin</artifactId>
 	<version>2.5</version>
-	<!-- <configuration> -->
-        <!--   <generateBackupPoms>false</generateBackupPoms> -->
-	<!-- </configuration> -->
+	<executions>
+	  <execution>
+	    <phase>validate</phase>
+	    <goals>
+	      <goal>display-plugin-updates</goal>
+	      <goal>display-dependency-updates</goal>
+	    </goals>
+	  </execution>
+	</executions>
       </plugin>
+      <!-- Enforce environmental constraints. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M2</version>
+        <executions>
+          <execution>
+	    <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>3.0.3</version>
+                </requireMavenVersion>
+              </rules>    
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Run PostgreSQL in Docker for integration tests. -->
       <plugin>
 	<groupId>io.fabric8</groupId>
 	<artifactId>docker-maven-plugin</artifactId>
@@ -76,26 +127,15 @@
 	  </execution>
 	</executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>3.0.0-M1</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+      <!-- Run the app in a dedicated Tomcat instance (not in Docker)
+           for integration tests. -->
       <plugin>
 	<groupId>org.apache.tomcat.maven</groupId>
 	<artifactId>tomcat7-maven-plugin</artifactId>
 	<version>2.2</version>
 	<executions>
           <execution>
-            <id>start-tomcat</id>
+            <id>start</id>
             <phase>pre-integration-test</phase>
             <goals>
               <goal>run-war</goal>
@@ -107,7 +147,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>stop-tomcat</id>
+            <id>stop</id>
             <phase>post-integration-test</phase>
             <goals>
               <goal>shutdown</goal>
@@ -115,13 +155,8 @@
           </execution>
 	</executions>
       </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
-        <configuration>
-	  <release>11</release>
-        </configuration>
-      </plugin>
+      <!-- Copy the WAR file to the /tmp folder for manual deployment
+           outside of Maven. -->
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
 	<version>1.1</version>
@@ -148,12 +183,6 @@
       <artifactId>postgresql</artifactId>
       <version>42.2.5.jre7</version>
     </dependency>
-    <!-- <dependency> -->
-    <!--   <groupId>junit</groupId> -->
-    <!--   <artifactId>junit</artifactId> -->
-    <!--   <version>4.12</version> -->
-    <!--   <scope>test</scope> -->
-    <!-- </dependency> -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
