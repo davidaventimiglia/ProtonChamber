@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Context configuration to be used when deploying the app locally
+     (and manually) outside of Maven.  This would typically be done
+     for exploratory testing in a local development environment where
+     Tomcat and any databases are set up outside the scope of this
+     project. -->
+<Context>
+  <ResourceLink
+      global="jdbc/ProtonDB"
+      name="jdbc/ProtonDB"
+      type="javax.sql.DataSource"/>
+</Context>

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Context configuration file used when deploying the app with the
+     tomcat7-maven-plugin to run the integration tests. -->
 <Context path="/ProtonChamber">
   <Resource name="jdbc/ProtonDB"
             auth="Container"
