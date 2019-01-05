@@ -4,11 +4,15 @@
 GET http://localhost:8080/manager/text/undeploy?path=/ProtonChamber
 Authorization: Basic YWRtaW46YWRtaW4=
 
-# deploy
+# remote deploy
 PUT http://localhost:8080/manager/text/deploy?path=/ProtonChamber
 Authorization: Basic YWRtaW46YWRtaW4=
 
 < target/ProtonChamber-1.0.0-SNAPSHOT.war
+
+# local deploy
+GET http://localhost:8080/manager/text/deploy?&war=file:/tmp/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
+Authorization: Basic YWRtaW46YWRtaW4=
 
 # list deployed apps
 GET http://localhost:8080/manager/text/list
