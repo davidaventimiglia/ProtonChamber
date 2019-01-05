@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Context>
-  <Resource name="jdbc/ProtonDB"
-            auth="Container"
-            type="javax.sql.DataSource"
-            username="dventimi"
-            password="isyih666"
-            driverClassName="org.postgresql.Driver"
-	    url="jdbc:postgresql://localhost:5432/dventimi"
-            maxTotal="8"
-            maxIdle="4"/>
+  <ResourceLink
+      global="jdbc/ProtonDB"
+      name="jdbc/ProtonDB"
+      type="javax.sql.DataSource"/>
 </Context>
