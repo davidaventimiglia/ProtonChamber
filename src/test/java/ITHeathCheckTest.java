@@ -34,21 +34,21 @@ class ITHealthCheckTest {
 	     ResultSet r = s.executeQuery(st.render())) {
 	    DatabaseMetaData m = c.getMetaData();}
 	catch (Exception e) {
-	    throw new RuntimeException(e);}}}
+	    throw new RuntimeException(e);}}
 
-    // @Test
-    // public void metadataDocumentExists () throws URISyntaxException, IOException, InterruptedException {
-    // 	// Given
-    // 	HttpRequest request = HttpRequest.newBuilder()
-    // 	    .uri(new URI("http://localhost:9080/ProtonChamber/$metadata"))
-    // 	    .GET()
-    // 	    .build();
+    @Test
+    public void metadataDocumentExists () throws URISyntaxException, IOException, InterruptedException {
+    	// Given
+    	HttpRequest request = HttpRequest.newBuilder()
+    	    .uri(new URI("http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata"))
+    	    .GET()
+    	    .build();
  
-    // 	// When
-    // 	HttpResponse<String> response = HttpClient.newBuilder()
-    // 	    .proxy(ProxySelector.getDefault())
-    // 	    .build()
-    // 	    .send(request, HttpResponse.BodyHandlers.ofString());
+    	// When
+    	HttpResponse<String> response = HttpClient.newBuilder()
+    	    .proxy(ProxySelector.getDefault())
+    	    .build()
+    	    .send(request, HttpResponse.BodyHandlers.ofString());
  
-    // 	// Then
-    // 	assertEquals(HttpURLConnection.HTTP_OK, response.statusCode());}}
+    	// Then
+    	assertEquals(HttpURLConnection.HTTP_OK, response.statusCode());}}
