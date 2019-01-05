@@ -21,11 +21,11 @@ class ITHealthCheckTest {
     	    throw new RuntimeException(e);}}
     
     @Test
-    void myFirstTest () {
+    public void myFirstTest () {
         assertEquals(2, 1 + 1);}
 
     @Test
-    void dbSantityCheck () {
+    public void dbSantityCheck () {
 	ST st;
 	STGroup g = new STGroupFile("default.stg");
 	st = g.getInstanceOf("test");
@@ -34,22 +34,21 @@ class ITHealthCheckTest {
 	     ResultSet r = s.executeQuery(st.render())) {
 	    DatabaseMetaData m = c.getMetaData();}
 	catch (Exception e) {
-	    throw new RuntimeException(e);}}
+	    throw new RuntimeException(e);}}}
 
-    @Test
-    public void givenUserDoesNotExists_whenUserInfoIsRetrieved_then404IsReceived () throws URISyntaxException, IOException, InterruptedException {
-	// Given
-	String name = "abcdefg";
-	HttpRequest request = HttpRequest.newBuilder()
-	    .uri(new URI("https://api.github.com/users/" + name))
-	    .GET()
-	    .build();
+    // @Test
+    // public void metadataDocumentExists () throws URISyntaxException, IOException, InterruptedException {
+    // 	// Given
+    // 	HttpRequest request = HttpRequest.newBuilder()
+    // 	    .uri(new URI("http://localhost:9080/ProtonChamber/$metadata"))
+    // 	    .GET()
+    // 	    .build();
  
-	// When
-	HttpResponse<String> response = HttpClient.newBuilder()
-	    .proxy(ProxySelector.getDefault())
-	    .build()
-	    .send(request, HttpResponse.BodyHandlers.ofString());
+    // 	// When
+    // 	HttpResponse<String> response = HttpClient.newBuilder()
+    // 	    .proxy(ProxySelector.getDefault())
+    // 	    .build()
+    // 	    .send(request, HttpResponse.BodyHandlers.ofString());
  
-	// Then
-	assertEquals(HttpURLConnection.HTTP_OK, response.statusCode());}}
+    // 	// Then
+    // 	assertEquals(HttpURLConnection.HTTP_OK, response.statusCode());}}
