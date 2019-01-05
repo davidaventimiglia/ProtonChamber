@@ -103,6 +103,7 @@
             <configuration>
               <fork>true</fork>
 	      <port>9080</port>
+	      <contextFile>context.xml</contextFile>
             </configuration>
           </execution>
           <execution>
@@ -120,6 +121,22 @@
         <configuration>
 	  <release>11</release>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <configuration>
+              <tasks>
+		<copy file="${project.build.directory}/${project.build.finalName}.war" todir="/tmp"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
