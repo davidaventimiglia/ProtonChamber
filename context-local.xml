@@ -6,7 +6,7 @@
      project. -->
 <Context>
   <ResourceLink
-      global="jdbc/ProtonDB"
+      global="jdbc/GlobalDB"
       name="jdbc/ProtonDB"
       type="javax.sql.DataSource"/>
 </Context>
