@@ -1,6 +1,8 @@
-image: maven:3.3.9
+image: maven:3.6.0-jdk-11-slim
 pipelines:
   default:
     - step:
+        caches:
+          - maven
         script:
           - mvn -B initialize verify    # -B batch mode makes Maven less verbose
