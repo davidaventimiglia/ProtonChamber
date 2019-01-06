@@ -38,17 +38,12 @@ class ITHealthCheckTest {
 
     @Test
     public void metadataDocumentExists () throws URISyntaxException, IOException, InterruptedException {
-    	// Given
     	HttpRequest request = HttpRequest.newBuilder()
-    	    .uri(new URI("http://localhost:8080/ProtonChamber/ProtonService.svc/$metadata"))
+    	    .uri(new URI("http://localhost:9080/ProtonChamber/ProtonService.svc/$metadata"))
     	    .GET()
     	    .build();
- 
-    	// When
     	HttpResponse<String> response = HttpClient.newBuilder()
     	    .proxy(ProxySelector.getDefault())
     	    .build()
     	    .send(request, HttpResponse.BodyHandlers.ofString());
- 
-    	// Then
     	assertEquals(HttpURLConnection.HTTP_OK, response.statusCode());}}

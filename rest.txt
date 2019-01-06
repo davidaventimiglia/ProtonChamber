@@ -15,7 +15,7 @@ Authorization: Basic YWRtaW46YWRtaW4=
 < target/ProtonChamber-1.0.0-SNAPSHOT.war
 
 # local deploy
-GET http://localhost:8080/manager/text/deploy?&war=file:/tmp/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber&config=file:/home/dventimi/work/Bitbucket/NeptuneStation/AtomicFramework/protonchamber/context-local.xml
+GET http://localhost:8080/manager/text/deploy?&war=file:/tmp/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
 Authorization: Basic YWRtaW46YWRtaW4=
 
 # list deployed apps
