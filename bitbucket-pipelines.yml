@@ -5,4 +5,4 @@ pipelines:
         caches:
           - maven
         script:
-          - mvn -B initialize verify    # -B batch mode makes Maven less verbose
+          - mvn -B initialize package    # -B batch mode makes Maven less verbose
