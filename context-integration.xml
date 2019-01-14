@@ -8,7 +8,7 @@
             username="atomic"
             password="atomic"
             driverClassName="org.postgresql.Driver"
-	    url="jdbc:postgresql://localhost:7432/atomic"
+	    url="jdbc:postgresql://localhost:5432/atomic"
             maxTotal="8"
             maxIdle="4"/>
 </Context>
