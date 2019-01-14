@@ -5,4 +5,15 @@ pipelines:
         caches:
           - maven
         script:
-          - mvn -B initialize package    # -B batch mode makes Maven less verbose
+          - mvn -B initialize verify    # -B batch mode makes Maven less verbose
+        services: 
+          - postgres 
+
+definitions: 
+  services: 
+    postgres: 
+      image: postgres
+      environment:
+        POSTGRES_DB: atomic
+        POSTGRES_USER: atomic
+        POSTGRES_PASSWORD: atomic

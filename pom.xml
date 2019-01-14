@@ -75,58 +75,58 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Run PostgreSQL in Docker for integration tests. -->
-      <plugin>
-	<groupId>io.fabric8</groupId>
-	<artifactId>docker-maven-plugin</artifactId>
-	<version>0.27.1</version>
-	<configuration>
-	  <images>
-	    <image>
-	      <name>postgres:11</name>
-	      <run>
-		<wait>
-		  <log>database system is ready to accept connections</log>
-		  <time>20000</time>
-		</wait>
-		<log>
-		  <prefix>DB: </prefix>
-		  <color>green</color>
-		</log>
-		<env>
-		  <POSTGRES_DB>atomic</POSTGRES_DB>
-		  <POSTGRES_USER>atomic</POSTGRES_USER>
-		  <POSTGRES_PASSWORD>atomic</POSTGRES_PASSWORD>
-		</env>
-		<ports>
-		  <port>7432:5432</port>
-		</ports>
-		<!-- <volumes> -->
-		<!--   <bind> -->
-		<!--     <volume>src/test/resources/db:/docker-entrypoint-initdb.d</volume> -->
-		<!--   </bind> -->
-		<!-- </volumes> -->
-	      </run>
-	    </image>
-	  </images>
-	</configuration>
-	<executions>
-	  <execution>
-	    <id>start</id>
-	    <phase>pre-integration-test</phase>
-	    <goals>
-	      <goal>start</goal>
-	    </goals>
-	  </execution>
-	  <execution>
-	    <id>stop</id>
-	    <phase>post-integration-test</phase>
-	    <goals>
-	      <goal>stop</goal>
-	    </goals>
-	  </execution>
-	</executions>
-      </plugin>
+      <!-- <!-\- Run PostgreSQL in Docker for integration tests. -\-> -->
+      <!-- <plugin> -->
+      <!-- 	<groupId>io.fabric8</groupId> -->
+      <!-- 	<artifactId>docker-maven-plugin</artifactId> -->
+      <!-- 	<version>0.27.1</version> -->
+      <!-- 	<configuration> -->
+      <!-- 	  <images> -->
+      <!-- 	    <image> -->
+      <!-- 	      <name>postgres:11</name> -->
+      <!-- 	      <run> -->
+      <!-- 		<wait> -->
+      <!-- 		  <log>database system is ready to accept connections</log> -->
+      <!-- 		  <time>20000</time> -->
+      <!-- 		</wait> -->
+      <!-- 		<log> -->
+      <!-- 		  <prefix>DB: </prefix> -->
+      <!-- 		  <color>green</color> -->
+      <!-- 		</log> -->
+      <!-- 		<env> -->
+      <!-- 		  <POSTGRES_DB>atomic</POSTGRES_DB> -->
+      <!-- 		  <POSTGRES_USER>atomic</POSTGRES_USER> -->
+      <!-- 		  <POSTGRES_PASSWORD>atomic</POSTGRES_PASSWORD> -->
+      <!-- 		</env> -->
+      <!-- 		<ports> -->
+      <!-- 		  <port>7432:5432</port> -->
+      <!-- 		</ports> -->
+      <!-- 		<!-\- <volumes> -\-> -->
+      <!-- 		<!-\-   <bind> -\-> -->
+      <!-- 		<!-\-     <volume>src/test/resources/db:/docker-entrypoint-initdb.d</volume> -\-> -->
+      <!-- 		<!-\-   </bind> -\-> -->
+      <!-- 		<!-\- </volumes> -\-> -->
+      <!-- 	      </run> -->
+      <!-- 	    </image> -->
+      <!-- 	  </images> -->
+      <!-- 	</configuration> -->
+      <!-- 	<executions> -->
+      <!-- 	  <execution> -->
+      <!-- 	    <id>start</id> -->
+      <!-- 	    <phase>pre-integration-test</phase> -->
+      <!-- 	    <goals> -->
+      <!-- 	      <goal>start</goal> -->
+      <!-- 	    </goals> -->
+      <!-- 	  </execution> -->
+      <!-- 	  <execution> -->
+      <!-- 	    <id>stop</id> -->
+      <!-- 	    <phase>post-integration-test</phase> -->
+      <!-- 	    <goals> -->
+      <!-- 	      <goal>stop</goal> -->
+      <!-- 	    </goals> -->
+      <!-- 	  </execution> -->
+      <!-- 	</executions> -->
+      <!-- </plugin> -->
       <!-- Run the app in a dedicated Tomcat instance (not in Docker)
            for integration tests. -->
       <plugin>
