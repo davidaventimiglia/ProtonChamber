@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Context configuration file used when deploying the app with the
+     tomcat7-maven-plugin to run the integration tests. -->
+<Context path="/ProtonChamber">
+  <Resource name="jdbc/ProtonDB"
+            auth="Container"
+            type="javax.sql.DataSource"
+            username="atomic"
+            password="atomic"
+            driverClassName="org.postgresql.Driver"
+	    url="jdbc:postgresql://localhost:5432/atomic"
+            maxTotal="8"
+            maxIdle="4"/>
+</Context>

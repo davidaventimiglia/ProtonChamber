@@ -12,65 +12,20 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <olingo.version>4.4.0</olingo.version>
+    <olingo.version>4.5.0</olingo.version>
   </properties>
 
   <build>
     <plugins>
+      <!-- Configure the compiler plugin. -->
       <plugin>
-	<groupId>org.codehaus.mojo</groupId>
-	<artifactId>versions-maven-plugin</artifactId>
-	<version>2.5</version>
-	<configuration>
-          <generateBackupPoms>false</generateBackupPoms>
-	</configuration>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+	  <release>11</release>
+        </configuration>
       </plugin>
-      <plugin>
-	<groupId>io.fabric8</groupId>
-	<artifactId>docker-maven-plugin</artifactId>
-	<version>0.27.1</version>
-	<configuration>
-	  <images>
-	    <image>
-	      <name>postgres:11</name>
-	      <run>
-		<wait>
-		  <log>database system is ready to accept connections</log>
-		  <time>20000</time>
-		</wait>
-		<log>
-		  <prefix>DB</prefix>
-		  <color></color>
-		</log>
-		<env>
-		  <POSTGRES_DB>atomic</POSTGRES_DB>
-		  <POSTGRES_USER>atomic</POSTGRES_USER>
-		  <POSTGRES_PASSWORD>atomic</POSTGRES_PASSWORD>
-		</env>
-		<ports>
-		  <port>7432:5432</port>
-		</ports>
-	      </run>
-	    </image>
-	  </images>
-	</configuration>
-	<executions>
-	  <execution>
-	    <id>start</id>
-	    <phase>pre-integration-test</phase>
-	    <goals>
-	      <goal>start</goal>
-	    </goals>
-	  </execution>
-	  <execution>
-	    <id>stop</id>
-	    <phase>post-integration-test</phase>
-	    <goals>
-	      <goal>stop</goal>
-	    </goals>
-	  </execution>
-	</executions>
-      </plugin>
+      <!-- Configure integration tests. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
@@ -84,13 +39,103 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Display Maven version info. -->
+      <plugin>
+	<groupId>org.codehaus.mojo</groupId>
+	<artifactId>versions-maven-plugin</artifactId>
+	<version>2.5</version>
+	<executions>
+	  <execution>
+	    <phase>validate</phase>
+	    <goals>
+	      <goal>display-plugin-updates</goal>
+	      <goal>display-dependency-updates</goal>
+	    </goals>
+	  </execution>
+	</executions>
+      </plugin>
+      <!-- Enforce environmental constraints. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M2</version>
+        <executions>
+          <execution>
+	    <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>3.0.3</version>
+                </requireMavenVersion>
+              </rules>    
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- <!-\- Run PostgreSQL in Docker for integration tests. -\-> -->
+      <!-- <plugin> -->
+      <!-- 	<groupId>io.fabric8</groupId> -->
+      <!-- 	<artifactId>docker-maven-plugin</artifactId> -->
+      <!-- 	<version>0.27.1</version> -->
+      <!-- 	<configuration> -->
+      <!-- 	  <images> -->
+      <!-- 	    <image> -->
+      <!-- 	      <name>postgres:11</name> -->
+      <!-- 	      <run> -->
+      <!-- 		<wait> -->
+      <!-- 		  <log>database system is ready to accept connections</log> -->
+      <!-- 		  <time>20000</time> -->
+      <!-- 		</wait> -->
+      <!-- 		<log> -->
+      <!-- 		  <prefix>DB: </prefix> -->
+      <!-- 		  <color>green</color> -->
+      <!-- 		</log> -->
+      <!-- 		<env> -->
+      <!-- 		  <POSTGRES_DB>atomic</POSTGRES_DB> -->
+      <!-- 		  <POSTGRES_USER>atomic</POSTGRES_USER> -->
+      <!-- 		  <POSTGRES_PASSWORD>atomic</POSTGRES_PASSWORD> -->
+      <!-- 		</env> -->
+      <!-- 		<ports> -->
+      <!-- 		  <port>7432:5432</port> -->
+      <!-- 		</ports> -->
+      <!-- 		<!-\- <volumes> -\-> -->
+      <!-- 		<!-\-   <bind> -\-> -->
+      <!-- 		<!-\-     <volume>src/test/resources/db:/docker-entrypoint-initdb.d</volume> -\-> -->
+      <!-- 		<!-\-   </bind> -\-> -->
+      <!-- 		<!-\- </volumes> -\-> -->
+      <!-- 	      </run> -->
+      <!-- 	    </image> -->
+      <!-- 	  </images> -->
+      <!-- 	</configuration> -->
+      <!-- 	<executions> -->
+      <!-- 	  <execution> -->
+      <!-- 	    <id>start</id> -->
+      <!-- 	    <phase>pre-integration-test</phase> -->
+      <!-- 	    <goals> -->
+      <!-- 	      <goal>start</goal> -->
+      <!-- 	    </goals> -->
+      <!-- 	  </execution> -->
+      <!-- 	  <execution> -->
+      <!-- 	    <id>stop</id> -->
+      <!-- 	    <phase>post-integration-test</phase> -->
+      <!-- 	    <goals> -->
+      <!-- 	      <goal>stop</goal> -->
+      <!-- 	    </goals> -->
+      <!-- 	  </execution> -->
+      <!-- 	</executions> -->
+      <!-- </plugin> -->
+      <!-- Run the app in a dedicated Tomcat instance (not in Docker)
+           for integration tests. -->
       <plugin>
 	<groupId>org.apache.tomcat.maven</groupId>
 	<artifactId>tomcat7-maven-plugin</artifactId>
 	<version>2.2</version>
 	<executions>
           <execution>
-            <id>start-tomcat</id>
+            <id>start</id>
             <phase>pre-integration-test</phase>
             <goals>
               <goal>run-war</goal>
@@ -98,10 +143,11 @@
             <configuration>
               <fork>true</fork>
 	      <port>9080</port>
+	      <contextFile>context-integration.xml</contextFile>
             </configuration>
           </execution>
           <execution>
-            <id>stop-tomcat</id>
+            <id>stop</id>
             <phase>post-integration-test</phase>
             <goals>
               <goal>shutdown</goal>
@@ -109,12 +155,24 @@
           </execution>
 	</executions>
       </plugin>
+      <!-- Copy the WAR file to the /tmp folder for manual deployment
+           outside of Maven. -->
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
-        <configuration>
-	  <release>11</release>
-        </configuration>
+        <artifactId>maven-antrun-plugin</artifactId>
+	<version>1.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <configuration>
+              <tasks>
+		<copy file="${project.build.directory}/${project.build.finalName}.war" todir="/tmp"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
@@ -123,18 +181,12 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.2.5</version>
+      <version>42.2.5.jre7</version>
     </dependency>
-    <!-- <dependency> -->
-    <!--   <groupId>junit</groupId> -->
-    <!--   <artifactId>junit</artifactId> -->
-    <!--   <version>4.12</version> -->
-    <!--   <scope>test</scope> -->
-    <!-- </dependency> -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.3.1</version>
+      <version>5.4.0-M1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -145,7 +197,7 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
+      <version>3.0-alpha-1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

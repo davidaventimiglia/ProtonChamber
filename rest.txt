@@ -4,8 +4,18 @@
 GET http://localhost:8080/manager/text/undeploy?path=/ProtonChamber
 Authorization: Basic YWRtaW46YWRtaW4=
 
-# deploy
-GET http://localhost:8080/manager/text/deploy?war=file:/home/dventimi/work/Bitbucket/NeptuneStation/AtomicFramework/protonchamber/target/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
+# remote deploy.  Note that this shouldn't work, since the packaged
+# WAR file now has now context.xml config file, and yet there appears
+# to be no way to remote deploy a WAR file to Tomcat if that file
+# doesn't contain a context.xml file.  This entry is for historical
+# purposes.
+PUT http://localhost:8080/manager/text/deploy?path=/ProtonChamber
+Authorization: Basic YWRtaW46YWRtaW4=
+
+< target/ProtonChamber-1.0.0-SNAPSHOT.war
+
+# local deploy
+GET http://localhost:8080/manager/text/deploy?&war=file:/tmp/ProtonChamber-1.0.0-SNAPSHOT.war&path=/ProtonChamber
 Authorization: Basic YWRtaW46YWRtaW4=
 
 # list deployed apps

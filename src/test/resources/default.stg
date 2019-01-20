@@ -1,0 +1,9 @@
+setUp() ::= <%
+create table person (
+id serial primary key,
+name text);
+%>
+
+test() ::= <%
+select now();
+%>
