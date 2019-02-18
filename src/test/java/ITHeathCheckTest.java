@@ -14,7 +14,7 @@ class ITHealthCheckTest {
     	ST st;
     	STGroup g = new STGroupFile("default.stg");
     	st = g.getInstanceOf("setUp");
-    	try (Connection c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/atomic", "atomic", "atomic");
+    	try (Connection c = DriverManager.getConnection("jdbc:postgresql://localhost:7432/atomic", "atomic", "atomic");
     	     Statement s = c.createStatement()) {
     	    s.execute(st.render());}
     	catch (Exception e) {
@@ -29,7 +29,7 @@ class ITHealthCheckTest {
 	ST st;
 	STGroup g = new STGroupFile("default.stg");
 	st = g.getInstanceOf("test");
-	try (Connection c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/atomic", "atomic", "atomic");
+	try (Connection c = DriverManager.getConnection("jdbc:postgresql://localhost:7432/atomic", "atomic", "atomic");
 	     Statement s = c.createStatement();
 	     ResultSet r = s.executeQuery(st.render())) {
 	    DatabaseMetaData m = c.getMetaData();}

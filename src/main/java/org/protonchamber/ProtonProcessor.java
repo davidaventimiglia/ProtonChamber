@@ -167,8 +167,8 @@ public class ProtonProcessor extends SQLProcessor {
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-	     ResultSet r = s.executeQuery(response.getHeaders("SQL").get(0));
-	     ResultSet x = t.executeQuery(response.getHeaders("SQL").get(1))) {
+	     ResultSet r = s.executeQuery(getSQL(c, response.getHeaders("SQL").get(0), db));
+	     ResultSet x = t.executeQuery(getSQL(c, response.getHeaders("SQL").get(1), db))) {
 	    EntityCollection ec = new EntityCollection();
 	    EdmEntitySet es = db.getEntitySet();
 	    int skip = db.getSkip();
@@ -194,8 +194,8 @@ public class ProtonProcessor extends SQLProcessor {
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-	     ResultSet r = s.executeQuery(getSQL(request.getHeaders("SQL").get(0)));
-	     ResultSet x = t.executeQuery(getSQL(request.getHeaders("SQL").get(1)));
+	     ResultSet r = s.executeQuery(getSQL(c, request.getHeaders("SQL").get(0), db));
+	     ResultSet x = t.executeQuery(getSQL(c, request.getHeaders("SQL").get(1), db))) {
 	    EntityCollection ec = new EntityCollection();
 	    EdmEntitySet es = db.getEntitySet();
 	    int skip = db.getSkip();
@@ -221,7 +221,7 @@ public class ProtonProcessor extends SQLProcessor {
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-    	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(getSQL(request.getHeader("SQL"))))) {
+    	     AutoCloseableWrapper<Boolean> rowCount = new AutoCloseableWrapper<>(s.execute(getSQL(c, request.getHeader("SQL"), db)))) {
 	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());}
 	catch (SQLException ex) {
 	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
@@ -233,7 +233,7 @@ public class ProtonProcessor extends SQLProcessor {
 	try (Connection c = ds.getConnection();
 	     Statement s = c.createStatement();
 	     Statement t = c.createStatement();
-    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(getSQL(request.getHeader("SQL"))))) {
+    	     AutoCloseableWrapper<Integer> rowCount = new AutoCloseableWrapper<>(s.executeUpdate(getSQL(c, request.getHeader("SQL"), db)))) {
 	    response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());}
 	catch (SQLException ex) {
 	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
