@@ -3,7 +3,6 @@ package org.protonchamber;
 import java.lang.reflect.*;
 import java.sql.*;
 import java.util.*;
-import javax.naming.*;
 import javax.servlet.*;
 import javax.sql.*;
 import org.apache.olingo.commons.api.edm.*;
@@ -118,7 +117,7 @@ public class ProtonEdmProvider extends CsdlAbstractEdmProvider {
 	    setName(r.getString("COLUMN_NAME"));
 	    setDefaultValue(r.getString("COLUMN_DEF"));
 	    try {setType(types.get(r.getInt("DATA_TYPE")).getFullQualifiedName());} catch (Exception e) {setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());}
-	    if (getType().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())) setMaxLength(r.getInt("COLUMN_SIZE"));
+	    if (getType().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName().toString())) setMaxLength(r.getInt("COLUMN_SIZE"));
 	    if (r.getInt("NULLABLE")==0) setNullable(false);
 	    if (r.getInt("NULLABLE")==1) setNullable(true);
 	    setPrecision(r.getInt("COLUMN_SIZE"));

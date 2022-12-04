@@ -1,7 +1,5 @@
 package org.protonchamber;
 
-import java.io.*;
-import java.lang.reflect.*;
 import java.sql.*;
 import java.time.*;
 import java.util.*;
@@ -14,7 +12,6 @@ import org.apache.olingo.commons.api.format.*;
 import org.apache.olingo.commons.api.http.*;
 import org.apache.olingo.server.api.*;
 import org.apache.olingo.server.api.deserializer.*;
-import org.apache.olingo.server.api.processor.*;
 import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
 import org.stringtemplate.v4.*;
@@ -51,7 +48,6 @@ public class ProtonProcessor extends SQLProcessor {
     private String getSQL (Connection c, String name, DB db) throws SQLException {
 	ST st;
 	STGroup g = new STGroupFile(String.format("%s.stg", c.getMetaData().getDatabaseProductName()));
-	if (g==null) g = new STGroupFile("default.stg");
 	st = g.getInstanceOf(name);
 	st.add("info", db);
 	servlet.log(String.format("st.render(): %s", st.render()));
@@ -261,13 +257,10 @@ public class ProtonProcessor extends SQLProcessor {
 	    throw new ODataApplicationException(String.format("message: %s", ex.toString()), 500, Locale.US);}}
 
     @Override
-    public void deletePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
-	DB db = new DB(odata, request, response, uriInfo);}
+    public void deletePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {}
 
     @Override
-    public void readPrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat) throws ODataApplicationException, ODataLibraryException {
-	DB db = new DB(odata, request, response, uriInfo);}
+    public void readPrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat) throws ODataApplicationException, ODataLibraryException {}
 
     @Override
-    public void updatePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-	DB db = new DB(odata, request, response, uriInfo);}}
+    public void updatePrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {}}

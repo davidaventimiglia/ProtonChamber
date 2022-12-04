@@ -1,8 +1,5 @@
 package org.protonchamber;
 
-import java.io.*;
-import java.lang.reflect.*;
-import java.sql.*;
 import java.time.*;
 import java.util.*;
 import org.apache.olingo.commons.api.data.*;
@@ -30,7 +27,6 @@ public class SQLProcessor implements EntityProcessor, EntityCollectionProcessor,
     private String getSQL (String product, String name, DB db) {
 	ST st;
 	STGroup g = new STGroupFile(String.format("%s.stg", product));
-	if (g==null) g = new STGroupFile("default.stg");
 	st = g.getInstanceOf(name);
 	st.add("info", db);
 	return st.render();}
@@ -173,13 +169,10 @@ public class SQLProcessor implements EntityProcessor, EntityCollectionProcessor,
 	response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());}
 
     @Override
-    public void deletePrimitive (ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {
-	DB db = new DB(odata, request, response, uriInfo);}
+    public void deletePrimitive (ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException {}
 
     @Override
-    public void readPrimitive (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat) throws ODataApplicationException, ODataLibraryException {
-	DB db = new DB(odata, request, response, uriInfo);}
+    public void readPrimitive (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat) throws ODataApplicationException, ODataLibraryException {}
 
     @Override
-    public void updatePrimitive (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-	DB db = new DB(odata, request, response, uriInfo);}}
+    public void updatePrimitive (ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {}}
